@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="../public/css/server.css">
+
+  <title>Flipstarter - Create a campaign</title>
+  <meta property="og:title" content="Flipstarter on IPFS - Really Decentralized Crowdfunding (WIP)">
+  <meta property="og:description" content="Ready for one-click decentralized crowdfunding? Flipstarter on IPFS is ready for testing!">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ipfs.io/ipns/k2k4r8mj128jk1z1wxr9jicekui276ny39x92jjjl0lcw8ki7adbhphh">
+  <meta property="og:image" content="https://ipfs.io/ipns/k2k4r8mj128jk1z1wxr9jicekui276ny39x92jjjl0lcw8ki7adbhphh/logo.png">
+</head>
+
+<body class="clouds">
+  <section class="container my-5">
+    <div class="row justify-content-center">
+      <div id="main" class="col col-lg-12 card card-body shadow-sm">
+        <ul class="load-indicator animated -half-second">
+          <li class="load-indicator__bubble"></li>
+          <li class="load-indicator__bubble"></li>
+          <li class="load-indicator__bubble"></li>
+        </ul>
+        <div id="content-container" class="d-none">
+          <div class="text-center">
+            <img src="../public/img/logo.png" alt="Logo" height="60">
+            <p><small>(TestNet)</small></p>
+            <h1 id="view-title" class="my-3">View campaigns</h1>
+          </div>
+          <div id="campaigns" class="my-3">
+          <h4 id="no-campaigns-message" class="d-none">This is a browser based flipstarter server. <br> Do not close this tab unless you can no longer accept donations. </h4>
+            <div id="ongoing-campaign-container" class="container d-none">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="my-3">
+                            <h2 class="d-inline-block">Ongoing Campaigns</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-container row">
+                  <!--Items go here -->
+                </div>
+            </div>
+            <div id="completed-campaign-container" class="container d-none">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="my-3">
+                            <h2 class="d-inline-block">Completed Campaigns</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-container row">
+                  <!--Items go here -->
+                </div>
+            </div>
+            <button id="add" class="btn btn-primary btn-lg btn-block">Create a campaign</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</body>
+
+</html>

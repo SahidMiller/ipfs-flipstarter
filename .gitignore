@@ -1,0 +1,8 @@
+.DS_Store
+node_modules
+dist/
+dist-lang/
+app/static/css/style.css
+database.db
+database.db-journal
+configs/server-config.json

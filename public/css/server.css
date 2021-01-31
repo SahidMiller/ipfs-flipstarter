@@ -1,0 +1,214 @@
+/* Create.css */
+.clouds {
+  background-color: white;
+  background-image: url(../img/clouds.png);
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.nav-link {
+  color: #000;
+}
+
+.btn-primary, .nav-pills .nav-link.active {
+  color: #fff;
+  background-color: #2EACAB;
+  border-color: #2EACAB;
+}
+
+.btn-primary:hover {
+  background-color: #1F7F7D;
+  border-color: #1F7F7D;
+}
+
+a, .btn-link {
+  color: #2EACAB;
+}
+
+a:hover, .btn-link:hover {
+  color: #1F7F7D;
+}
+
+@media (min-width: 992px) {
+  .modal-lg, .modal-xl {
+    max-width: 922px;
+  }
+}
+
+#main {
+  min-height: 600px;
+}
+
+
+
+#add {
+  margin: 25px auto;
+  left: 0px;
+  right: 0px;
+  bottom: 0;
+  position: absolute;
+  width: 95%;
+}
+
+#no-campaigns-message {
+  text-align: center;
+  margin-top: 100px;
+}
+
+#content-container {
+  margin-bottom: 50px;
+}
+
+#campaigns .card {
+    font-weight: 400;
+    border: 0;
+    box-shadow: 0 2px 5px 0 rgba(0,0,0,.16), 0 2px 10px 0 rgba(0,0,0,.12);
+}
+
+#campaigns .card-head {
+    position: absolute;
+    top: 5%;
+    left: 5%;
+    width: 90%;
+    bottom: 160px;
+    text-align: right;
+}
+
+#campaigns .card-body {
+  cursor: pointer;
+}
+
+#campaigns .card-title {
+  font-size: 1.4rem;
+}
+
+#campaigns .card-footer {
+  background-color: rgb(255, 255, 255); 
+  padding: 0px;
+}
+
+.card-border-top {
+  border-radius: 40px!important;
+}
+
+.card-image-border {
+  align-self: center;
+}
+
+.Ripple {
+  top: 0px; 
+  left: 0px; 
+  width: 0px; 
+  height: 0px;
+}
+
+.Ripple-parent {
+  touch-action: unset;
+  display: flex;
+  justify-content: center;
+  max-height: 250px;
+  min-height: 200px;
+  border: none;
+  border-top-left-radius: 40px;
+  border-top-right-radius: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-project-category {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    color: #fff;
+    font-size: .9rem;
+    padding: .2rem;
+    width: 7rem;
+    background-color: #ffca79;
+    border-radius: 20px;
+    text-align: center;
+}
+
+.card-progress-bar {
+    border-radius: 10px;
+    background-color: #f7f7f7;
+}
+
+.donations {
+  font-size: .875rem;
+  color: #707070;
+  display: flex;
+  justify-content: space-between;
+}
+
+.card-funding, .card-goal {
+  width: 50%;
+}
+
+.expand-on-hover:hover {
+    -webkit-transform: scale(1.05);
+    -ms-transform: scale(1.05);
+    transform: scale(1.05);
+}
+
+
+/* Loading Animation
+------------------------
+*/
+
+.load-indicator {
+   list-style: none;
+   margin: 0;
+   padding: 0;
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+   font-size: 0;
+   margin-left: -6px;
+   margin-top: -6px; 
+}
+
+.load-indicator__bubble {
+   height: 0;
+   position: absolute;
+   top: 50%;
+   left: 0;
+   width: 0;
+   margin: 0;
+   height: 6px;
+   width: 6px;
+   border: 2px solid #2152A3;
+   border-radius: 100%;
+   transform: transformZ(0);
+   animation: umbLoadIndicatorAnimation 1.4s infinite;
+}
+
+.load-indicator__bubble:nth-child(1n) {
+   left: -16px;
+   animation-delay: 0s;
+}
+
+.load-indicator__bubble:nth-child(2n) {
+   left: 0;
+   animation-delay: 0.15s;
+}
+
+.load-indicator__bubble:nth-child(3n) {
+   left: 16px;
+   animation-delay: 0.30s;
+}
+
+@keyframes umbLoadIndicatorAnimation {
+  0%   {
+    transform: scale(0.5);
+    background: #2152A3;
+  }
+  50%   {
+    transform: scale(1);
+    background: transparent;
+  }
+  100% {
+    transform: scale(0.5);
+    background: #2152A3;
+  }
+}
