@@ -52,7 +52,6 @@
     "jquery": "^3.5.1",
     "libp2p-flipstarter-server": "github:sahidmiller/libp2p-flipstarter-server",
     "libp2p-stream-helper": "github:sahidmiller/libp2p-stream-helper",
-    "libp2p-websockets": "^0.15.0",
     "marked": "^1.2.7",
     "moment": "^2.29.1",
     "mustache": "^4.1.0",
