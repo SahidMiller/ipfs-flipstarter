@@ -50,7 +50,7 @@
     "ipfs": "^0.53.0",
     "ipld-in-memory": "^7.0.0",
     "jquery": "^3.5.1",
-    "libp2p-flipstarter-server": "file:../Libp2pFlipstarterServer",
+    "libp2p-flipstarter-server": "github:sahidmiller/libp2p-flipstarter-server",
     "libp2p-stream-helper": "github:sahidmiller/libp2p-stream-helper",
     "libp2p-websockets": "^0.15.0",
     "marked": "^1.2.7",

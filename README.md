@@ -28,22 +28,30 @@ cd ipfs-flipstarter
 npm i
 ```
 
-## Usage
+## Build
 
 ```
-npx webpack --env.ipfs="https://localhost:5001" --env.multiaddrs="/ip4/10.0.0.19/tcp/4001/p2p/12D3K..."
+npx webpack --env="ipfsApi=https://localhost:5001"
 ```
 
-Or pass a config
-```
-npx webpack --env.config="./server-config.json"
-```
+#### Build command line options
 
-#### Example config file
+`npx webpack --env="<boolean option>" --env="<option>=<value>"`
 
-```
-{
-	"ipfs": "http://localhost:5001",
-	"multiaddrs": "/ip4/10.0.0.19/tcp/4001/p2p/12D3K",
-}
-```
+The following command line options are available:
+
+|Name|Required|Type|Default|Description|
+|:--:|:-----:|:--:|:-----:|:----------|
+|**`ipfs`**|no|`{string}`|`http://localhost:5001`| API URL for go-ipfs node. |
+|**`development`**|no|`{boolean}`|`false`| Development mode boolean flag. Serves on port 55554 |
+|**`noIpfs`**|no|`{boolean}`|`false`| Skip IPFS build |
+|**`verbose`**|no|`{boolean}`|`false`| Verbose logging for debugging purposes |
+
+#### Advanced build command options
+
+|Name|Required|Type|Default|Description|
+|:--:|:-----:|:--:|:-----:|:----------|
+|**`clientAppCid`**|no|`{string}`|`false`| Skip IPFS for client app and provide this cid to create app |
+|**`createAppCid`**|no|`{string}`|`false`| Skip IPFS for create app and provide this cid to server app |
+|**`campaignFilePath`**|no|`{string}`|`undefined`| Provide default campaign file to copy to client app (only on development). If indexFile also provided, serves client app |
+|**`indexFilePath`**|yes|`{string}`|`undefined`| Provide default campaign file to copy to client app (only on development). If campaignFile also provided, serves client app  |

@@ -10,6 +10,7 @@ const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin')
 const { merge } = require('webpack-merge')
 const fs = require('fs')
 const path = require('path')
+const TerserPlugin = require('terser-webpack-plugin')
 
 const commonConfig = {
   mode: "development",
@@ -155,10 +156,12 @@ const getClientAppConfig = (env) => {
 	return merge(commonConfig, {
 		name: "client",
 		target: 'web',
-		entry: './src/client/index.js',
+		entry: {
+			app: './src/client/index.js'
+		},
 		output: { 
 			path: path.join(__dirname, '../dist/client'),
-			filename: "static/js/app.js",
+			filename: "static/js/[name].js",
 	  		publicPath: './'
 		},
 		plugins: [
@@ -177,6 +180,7 @@ const getClientAppConfig = (env) => {
 			    }
 			}), 
 			new HtmlWebpackPlugin({
+				chunks: ["app"],
 				template: './public/templates/index.html',
 				filename: '../create/static/templates/index.html',
 				publicPath: './',
@@ -283,6 +287,10 @@ module.exports = (env = {}) => {
 
 		commonConfig.mode = "production"
 		delete commonConfig.devtool
+		commonConfig.optimization = {
+			minimize: true,
+			minimizer: [new TerserPlugin()]
+		}
 	}
 
 	const clientAppConfig = getClientAppConfig(env)
@@ -293,75 +301,52 @@ module.exports = (env = {}) => {
 	let createHash = env.createAppCid
 	const skipIpfs = clientHash && createHash
 
-	let configPath = env.config
-	let config
+	env.ipfs = env.ipfs || "http://127.0.0.1:5001"
 
-	if (!configPath) {
-		console.log("Using default config path: ./server-config.json")
-		configPath = path.join(__dirname, "./server-config.json")
-	}
+	if (!env.noIpfs) {
 
-	try {
+		if (!skipIpfs) {
 
-		const configJson = fs.readFileSync(configPath)
-		config = JSON.parse(configJson)
+			//Add ipfs plugins to applications
+			createAppConfig.plugins.push(new IpfsWebpackPlugin({
+				verbose: !!env.verbose, 
+				name: "create",
+			    rootDir: "./dist/create/",
+			    publishingKey: 
+			    ipfsApi: env.ipfs,
+			    noIpns: true
+			}))
 
-	} catch (error) {
-		
-		if (!env.ipfs || !env.multiaddress) {
-			
-			throw "Config file not found"
+			clientAppConfig.plugins.push(new IpfsWebpackPlugin({
+				name: "client",
+				rootDir: "./dist/client/",
+			    ipfs: env.ipfs,
+				verbose: !!env.verbose, 
+			    noIpns: true
+			}))
+
+			serverAppConfig.plugins.push(new IpfsWebpackPlugin({
+				name: "libp2p-flipstarter-browser",
+				rootDir: "./dist/server/",
+			    ipfs: env.ipfs,
+				verbose: !!env.verbose, 
+			    noIpns: true
+			}))
 		}
-	}
 
-	if (!env.ipfs || !env.multiaddrs) {
-
-		if (!config.ipfs || !config.multiaddrs) {
-			throw env.config ? 
-				"Please provide ipfs and multiaddrs properties in config file" :
-				"Please provide --env.ipfs and --env.multiaddrs OR --env.config configuration file"	
+		if (!clientHash) {
+			//Wait for client hash from client app
+			createAppConfig.plugins.push(new WebpackSeriesPlugin(async ({ IpfsClientWebpackPlugin }) => {
+		    	clientHash = await IpfsClientWebpackPlugin
+		    }))
 		}
 
-		env.ipfs = env.ipfs || config.ipfs
-		env.multiaddrs = env.multiaddrs || config.multiaddrs
-	}
-
-	//Add ipfs plugins to applications
-	createAppConfig.plugins.push(new IpfsWebpackPlugin({
-		//verbose: true, 
-		name: "create",
-	    rootDir: "./dist/create/",
-	    ipfs: env.ipfs,
-		multiaddrs: env.multiaddrs
-	}))
-
-	clientAppConfig.plugins.push(new IpfsWebpackPlugin({
-		//verbose: true, 
-		name: "client",
-		rootDir: "./dist/client/",
-	    ipfs: env.ipfs,
-		multiaddrs: env.multiaddrs
-	}))
-
-	serverAppConfig.plugins.push(new IpfsWebpackPlugin({
-		name: "libp2p-flipstarter-browser",
-		rootDir: "./dist/server/",
-	    ipfs: env.ipfs,
-		multiaddrs: env.multiaddrs
-	}))
-
-	if (!clientHash) {
-		//Wait for client hash from client app
-		createAppConfig.plugins.push(new WebpackSeriesPlugin(async ({ IpfsClientWebpackPlugin }) => {
-	    	clientHash = await IpfsClientWebpackPlugin
-	    }))
-	}
-
-	if (!createHash) {
-	    //Wait for create hash from create app
-		serverAppConfig.plugins.push(new WebpackSeriesPlugin(async ({ IpfsCreateWebpackPlugin }) => {
-	    	createHash = await IpfsCreateWebpackPlugin
-	    }))
+		if (!createHash) {
+		    //Wait for create hash from create app
+			serverAppConfig.plugins.push(new WebpackSeriesPlugin(async ({ IpfsCreateWebpackPlugin }) => {
+		    	createHash = await IpfsCreateWebpackPlugin
+		    }))
+		}
 	}
 
 	//Add client hash to create app
@@ -381,12 +366,21 @@ module.exports = (env = {}) => {
     //Add serve plugin for development (possibly don't add hash for this case?)
 	if(env.development) {
 		
-		if (config && config.testFiles) { 
+		//Use static files for client page during development (Navigate directly to it, God willing)
+		//Create logic overrides these hardcoded cids
+		if (env.campaignFilePath || env.indexFilePath) { 
+			const patterns = []
+
+			if (env.campaignFilePath) {
+				patterns.push({ from: env.campaignFilePath })
+			}
+
+			if (env.indexFilePath) {
+				patterns.push({ from: env.indexFilePath })
+			}
+
 			clientAppConfig.plugins.push(new CopyWebpackPlugin({
-				patterns: [
-					{ from: path.join(__dirname, config.testFiles.campaignFilePath) },
-					{ from: path.join(__dirname, config.testFiles.indexFilePath) }
-				]
+				patterns: copyFiles
 			}))
 		}
 		
@@ -402,8 +396,12 @@ module.exports = (env = {}) => {
 		 	modules: clientCdnModules 
 		}))
 
-		serverAppConfig.entry['webpack-plugin-serve/client'] = 'webpack-plugin-serve/client'
-		serverAppConfig.plugins.push(new Serve({
+		//God willing, serve the client app if these are set explicitly
+		//TODO God willing: use explicit flag for which app to serve
+		let serveApp = env.campaignFilePath && env.indexFilePath ? clientAppConfig : serverAppConfig
+
+		serveApp.entry['webpack-plugin-serve/client'] = 'webpack-plugin-serve/client'
+		serveApp.plugins.push(new Serve({
 			static: "./dist/server",
 			port: 55554
 		}))
@@ -415,6 +413,8 @@ module.exports = (env = {}) => {
 		// 	port: 55555
 		// }))
 	} else {
+
+		serverAppConfig.mode = "development"
 
 		serverAppConfig.plugins.push(new HtmlWebpackTagsPlugin({
 			tags: ['static/css/bootstrap.css']
