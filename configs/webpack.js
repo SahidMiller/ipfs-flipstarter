@@ -309,11 +309,10 @@ module.exports = (env = {}) => {
 
 			//Add ipfs plugins to applications
 			createAppConfig.plugins.push(new IpfsWebpackPlugin({
-				verbose: !!env.verbose, 
 				name: "create",
 			    rootDir: "./dist/create/",
-			    publishingKey: 
-			    ipfsApi: env.ipfs,
+			    ipfs: env.ipfs,
+				verbose: !!env.verbose, 
 			    noIpns: true
 			}))
 
@@ -326,7 +325,7 @@ module.exports = (env = {}) => {
 			}))
 
 			serverAppConfig.plugins.push(new IpfsWebpackPlugin({
-				name: "libp2p-flipstarter-browser",
+				name: "server",
 				rootDir: "./dist/server/",
 			    ipfs: env.ipfs,
 				verbose: !!env.verbose, 
