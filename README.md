@@ -4,9 +4,9 @@ ipfs-flipstarter is a suite of packages for developing and deploying ipfs based 
 
 |Package|Description|Current Hash|
 |:--:|:----------:|:----|
-|**`server`**| IPFS site to host a browser based server that can accept and validate donations in the browser using libp2p-flipstarter-server | QmY3JnQqU8QLAZxy7Az51FhiLsLhbGWnmZYoJhMeCoUqoT |
-|**`create`**| IPFS site to create flipstarter sites in the browser using IPFS. Includes an adapter to use third-party apis for handling contributions (like the included browser server) | QmbkkRKw2qUQMxqtvuQzfxhvLkuH5zL1jVQkAuv3dpGNsV |
-|**`client`**| Flipstarter client-side app used and deployed by the create package | QmcCP2dGyWy5ikBx6t7pRne1KGnje3V1Wkqr31XngDSzHu |
+|**`server`**| IPFS site to host a browser based server that can accept and validate donations in the browser using libp2p-flipstarter-server | QmQNRzXTpeayHu1coEn6T4NoEHG29eXFhqJCoLW8PdrS3b |
+|**`create`**| IPFS site to create flipstarter sites in the browser using IPFS. Includes an adapter to use third-party apis for handling contributions (like the included browser server) | QmaELvSGKBzBCP1pGSMQzdizcXQCzfwpQpuYsqvcpEGPXb |
+|**`client`**| Flipstarter client-side app used and deployed by the create package | QmRG38KgGsGLjiWbFHTyEUkLTGjPh9RTJfXq8voDb2gruL |
 
 ## Concepts
 
