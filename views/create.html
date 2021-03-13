@@ -108,7 +108,7 @@
               <div class="form-row text-muted">
                 <div class="form-group col-lg-4">
                   <label for="amount[0]">Funding Goal <small>(amount in BCH)</small></label>
-                  <input type="number" class="form-control goal-input" id="amount[0]" name="amount[0]" step="0.00000001" value="" min="0.00000546" required>
+                  <input type="number" class="form-control goal-input" id="amount[0]" name="amount[0]" step="0.00000001" value="0.00000000" min="0.00000546" required>
                 </div>
                 <div class="form-group col-lg-4">
                   <label for="image_url[0]">Image URL</label>
@@ -211,6 +211,33 @@
                 </div>
               </div>
               <!-- / -->
+            </div>
+          </div>
+          <hr>
+          <p class="h4 api-section">Reward Hooks</p>
+          <p>Provide your potential investors with a reward for contributing. <a class="text-nowrap" data-toggle="modal" data-target="#modal-rewards-demo" href="#">
+            <u>Learn more</u>
+          </a></p>
+          <div class="modal modal-rewards-demo fade" id="modal-rewards-demo" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <div class="h5 mb-0" class="modal-title">Project Rewards</div>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body p-0">
+                  <img class="img-fluid" src="../public/img/claim-rewards.png" width="920" height="800" alt="Claim rewards example">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="api-section form-row">
+            <div class="form-group col-8">
+              <label for="reward_url">Claim reward link</label>
+              <input id="reward_url" name="reward_url" type="text" class="form-control" placeholder="https://yourdomain.com/rewards/${address}">
+              <small style="padding-left: 5px; color: #525252;">Use ${address} to capture the contributors address into clickable link after contributing.</small>
             </div>
           </div>
           <hr>

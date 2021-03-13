@@ -30,6 +30,7 @@
   "PasteHere": "Pegar aquí",
 
   "statusContribution": "Gracias por tu contribución.",
+  "statusReward": "Reclama tu recompensa",
   "statusPending": "La campaña no ha comenzado todavía.",
   "statusFullfilled": "La campaña ha sido financiada.",
   "statusExpired": "La campaña ha expirado sin ser financiada.",
@@ -40,7 +41,7 @@
   "celebrateAction": "Celebremos!",
 
   "changeLanguage": "Cambiar idioma",
-
+  
   "statusParsing": "Verificando promesa...",
   "statusRetrying": "Esperando por transacción de promesa...",
   "statusFailedStructure": "Por favor actualiza la página e intenta nuevamente. Encontramos un problema en la estructura de los datos enviados y no pudimos resolverlo.",

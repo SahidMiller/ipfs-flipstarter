@@ -30,6 +30,7 @@
   "PasteHere": "Paste here",
 
   "statusContribution": "Thank you for your contribution.",
+  "statusReward": "Claim your reward",
   "statusPending": "The campaign has not yet started.",
   "statusFullfilled": "The campaign has been funded.",
   "statusExpired": "The campaign expired without being funded.",

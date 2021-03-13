@@ -324,13 +324,15 @@ module.exports = (env = {}) => {
 			    noIpns: true
 			}))
 
-			serverAppConfig.plugins.push(new IpfsWebpackPlugin({
-				name: "server",
-				rootDir: "./dist/server/",
-			    ipfs: env.ipfs,
-				verbose: !!env.verbose, 
-			    noIpns: true
-			}))
+			if (!env.noServer) {
+				serverAppConfig.plugins.push(new IpfsWebpackPlugin({
+					name: "server",
+					rootDir: "./dist/server/",
+					ipfs: env.ipfs,
+					verbose: !!env.verbose, 
+					noIpns: true
+				}))
+			}
 		}
 
 		if (!clientHash) {
@@ -340,7 +342,7 @@ module.exports = (env = {}) => {
 		    }))
 		}
 
-		if (!createHash) {
+		if (!createHash && !env.noServer) {
 		    //Wait for create hash from create app
 			serverAppConfig.plugins.push(new WebpackSeriesPlugin(async ({ IpfsCreateWebpackPlugin }) => {
 		    	createHash = await IpfsCreateWebpackPlugin
@@ -356,11 +358,11 @@ module.exports = (env = {}) => {
     }))
 
 	//Add create hash to server app
-    serverAppConfig.plugins.push(new webpack.DefinePlugin({
-     	__FLIPSTARTER_CREATE_PAGE_CID__: webpack.DefinePlugin.runtimeValue(() => {
-     		return JSON.stringify(createHash || "")
-     	}, true)
-    }))
+	!env.noServer && serverAppConfig.plugins.push(new webpack.DefinePlugin({
+		__FLIPSTARTER_CREATE_PAGE_CID__: webpack.DefinePlugin.runtimeValue(() => {
+			return JSON.stringify(createHash || "")
+		}, true)
+	}))
 
     //Add serve plugin for development (possibly don't add hash for this case?)
 	if(env.development) {
@@ -369,21 +371,23 @@ module.exports = (env = {}) => {
 		//Create logic overrides these hardcoded cids
 		if (env.campaignFilePath || env.indexFilePath) { 
 			const patterns = []
-
+			
 			if (env.campaignFilePath) {
-				patterns.push({ from: env.campaignFilePath })
+				const campaignFilePath = typeof env.campaignFilePath === 'string' ? env.campaignFilePath : "./tests/assets/campaign.json"
+				patterns.push({ from: campaignFilePath })
 			}
 
 			if (env.indexFilePath) {
-				patterns.push({ from: env.indexFilePath })
+				const indexFilePath = typeof env.indexFilePath === 'string' ? env.indexFilePath : "./tests/assets/index.html"
+				patterns.push({ from: indexFilePath })
 			}
 
 			clientAppConfig.plugins.push(new CopyWebpackPlugin({
-				patterns: copyFiles
+				patterns
 			}))
 		}
 		
-		serverAppConfig.plugins.push(new WebpackCdnPlugin({
+		!env.noServer && serverAppConfig.plugins.push(new WebpackCdnPlugin({
 		 	modules: serverCdnModules
 		}))
 
@@ -395,13 +399,12 @@ module.exports = (env = {}) => {
 		 	modules: clientCdnModules 
 		}))
 
-		//God willing, serve the client app if these are set explicitly
-		//TODO God willing: use explicit flag for which app to serve
-		let serveApp = env.campaignFilePath && env.indexFilePath ? clientAppConfig : serverAppConfig
-
+		let serveApp = (env.campaignFilePath && env.indexFilePath) ? clientAppConfig : env.noServer ? createAppConfig : serverAppConfig
+		let serveAppDir = (env.campaignFilePath && env.indexFilePath) ? "./dist/client" : env.noServer ? "./dist/create" : "./dist/server"
+		
 		serveApp.entry['webpack-plugin-serve/client'] = 'webpack-plugin-serve/client'
 		serveApp.plugins.push(new Serve({
-			static: "./dist/server",
+			static: serveAppDir,
 			port: 55554
 		}))
 
@@ -413,9 +416,9 @@ module.exports = (env = {}) => {
 		// }))
 	} else {
 
-		serverAppConfig.mode = "development"
+		commonConfig.mode = "development"
 
-		serverAppConfig.plugins.push(new HtmlWebpackTagsPlugin({
+		!env.noServer && serverAppConfig.plugins.push(new HtmlWebpackTagsPlugin({
 			tags: ['static/css/bootstrap.css']
 		}))
 		createAppConfig.plugins.push(new HtmlWebpackTagsPlugin({
@@ -423,7 +426,13 @@ module.exports = (env = {}) => {
 		}))
 	}
 
-	return WebpackSeries([clientAppConfig, createAppConfig, serverAppConfig])
+	const series = [clientAppConfig, createAppConfig]
+
+	if (!env.noServer) {
+		series.push(serverAppConfig)
+	}
+
+	return WebpackSeries(series)
 }
 
 module.exports.cdnModules = { clientCdnModules, createCdnModules }

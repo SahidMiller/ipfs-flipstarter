@@ -30,6 +30,7 @@
   "PasteHere": "ここに貼り付け",
 
   "statusContribution": "ご協力ありがとうございました。",
+  "statusReward": "あなたの報酬を請求",
   "statusPending": "キャンペーンはまだ始まっていません。",
   "statusFullfilled": "キャンペーンが成功しました。",
   "statusExpired": "キャンペーンは目標を達成しませんでした。",

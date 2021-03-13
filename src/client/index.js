@@ -8,7 +8,12 @@ import "moment/locale/ja.js"
 import "moment/locale/es.js"
 
 // Load the marked library to parse markdown text,
-import marked from "marked"
+import unified from "unified"
+import markdown from 'remark-parse'
+import remark2rehype from 'remark-rehype'
+import htmlInMarkdown from 'rehype-raw'
+import githubMarkdown from 'remark-gfm'
+import html from 'rehype-stringify'
 
 // Load and initialize the DOMPurify library to ensure safety for parsed markdown.
 import createDOMPurify from "dompurify"
@@ -19,6 +24,10 @@ import confetti from "canvas-confetti"
 import { HttpServerConnector } from './server-connector.js'
 import { Libp2pServerConnector } from './server-ipfs-connector.js'
 import { bitcoinCashUtilities } from '../utils'
+import { BITBOX } from 'bitbox-sdk'
+import { Buffer } from 'buffer'
+
+const bitbox = new BITBOX()
 
 const { SATS_PER_BCH, commitmentsPerTransaction, calculateMinerFee, inputPercentModifier } = bitcoinCashUtilities
 const interfaceResponses = {
@@ -131,7 +140,13 @@ class flipstarter {
     document
       .getElementById("commitment")
       .addEventListener("keyup", this.updateCommitButton.bind(this));
-
+      document
+      .getElementById("commitment")
+      .addEventListener("onpaste", this.updateCommitButton.bind(this));
+    document
+      .getElementById("commitment")
+      .addEventListener("oninput", this.updateCommitButton.bind(this));
+      
     //
     document
       .getElementById("translateEnglish")
@@ -163,8 +178,6 @@ class flipstarter {
 
     //Initialize campaign variables
     this.campaign.requestedSatoshis = getRequestedSatoshis(this.campaign)
-    this.campaign.committedSatoshis = 0
-    this.campaign.commitmentCount = 0
 
     //TODO Error if nothing is set?
     if (this.campaign.apiType === "ipfs") {
@@ -184,6 +197,10 @@ class flipstarter {
 
     // Update the campaign status and timer.
     this.updateTimerPresentation();
+
+    // Update the timer every second.
+    setInterval(this.updateExpiration.bind(this), 1000);
+    
     this.updateRecipientCount(this.campaign.recipients.length);
     this.updateCampaignProgressCounter();
 
@@ -269,8 +286,8 @@ class flipstarter {
       this.updateContributionList();
 
       // .. update the progress bar and contribution amount
-      const committedSatoshis = this.campaign.committedSatoshis
-      const requestedSatoshis = this.campaign.requestedSatoshis
+      const requestedSatoshis = this.campaign.requestedSatoshis || 0
+      const committedSatoshis = this.campaign.committedSatoshis || 0
       document.getElementById("campaignProgressBar").style.width = ((100 * committedSatoshis) / requestedSatoshis).toFixed(2) + "%";
 
       const contributionAmount =  (committedSatoshis / SATS_PER_BCH).toFixed(8)
@@ -285,9 +302,6 @@ class flipstarter {
     this.server.on('update', updateCampaign)
     await this.server.listen(this.campaign)
     updateCampaign(this.campaign)
-
-    // Update the timer every second.
-    setInterval(this.updateExpiration.bind(this), 1000);
   }
 
   showFullfilledStatus(fullfillmentTx) {
@@ -394,7 +408,7 @@ class flipstarter {
 
     // Update the contribution counter.
 
-    document.getElementById("campaignContributorCount").textContent = this.campaign.commitmentCount;
+    document.getElementById("campaignContributorCount").textContent = this.campaign.commitmentCount || 0;
 
     if (this.campaign.commitmentCount === 0) {
       // Get the empty message template node.
@@ -517,8 +531,17 @@ class flipstarter {
     this.currencyValue = this.currencyRates.find((obj) => obj.code === currencies[languageCode]).rate;
 
     // Print out the campaign texts.
-    document.getElementById("campaignAbstract").innerHTML = DOMPurify.sanitize(marked(this.campaign.descriptions[languageCode].abstract));
-    document.getElementById("campaignDetails").innerHTML = DOMPurify.sanitize(marked(this.campaign.descriptions[languageCode].proposal));
+    const processor = unified()
+      .use(githubMarkdown)
+      .use(markdown)
+      .use(remark2rehype, {allowDangerousHtml: true})
+      .use(htmlInMarkdown)
+      .use(html)
+    document.getElementById("campaignAbstract").innerHTML = DOMPurify.sanitize(await processor.process(this.campaign.descriptions[languageCode].abstract));
+    document.getElementById("campaignDetails").innerHTML = DOMPurify.sanitize(await processor.process(this.campaign.descriptions[languageCode].proposal));
+    
+    //TODO God willing: find better way to remove ugly disabled css
+    document.querySelectorAll(".task-list-item input[checked]").forEach(i => i.disabled = false)
 
     // Parse the interface translation.
     this.translation = interfaceResponses[languageCode]
@@ -735,7 +758,7 @@ class flipstarter {
 
   async updateContributionInput(event) {
     let donationAmount;
-    const committedSatoshis = this.campaign.committedSatoshis
+    const committedSatoshis = this.campaign.committedSatoshis || 0
     const requestedSatoshis = this.campaign.requestedSatoshis
 
     // Hide donation section.
@@ -786,15 +809,15 @@ class flipstarter {
   calculateMinerFee() {
     // Get the number of recipients and contributions.
     const RECIPIENT_COUNT = this.campaign.recipients.length;
-    const COMMITMENT_COUNT = this.campaign.commitmentCount;
+    const COMMITMENT_COUNT = this.campaign.commitmentCount || 0;
 
     return calculateMinerFee(RECIPIENT_COUNT, COMMITMENT_COUNT)
   }
 
   async inputPercentModifier(inputPercent) {
-    const committedSatoshis = this.campaign.committedSatoshis
-    const requestedSatoshis = this.campaign.requestedSatoshis
-    const commitmentCount = this.campaign.commitmentCount
+    const committedSatoshis = this.campaign.committedSatoshis || 0
+    const requestedSatoshis = this.campaign.requestedSatoshis || 0
+    const commitmentCount = this.campaign.commitmentCount || 0
 
     return inputPercentModifier(inputPercent, this.calculateMinerFee(), requestedSatoshis, committedSatoshis, commitmentCount)
   }
@@ -876,7 +899,7 @@ class flipstarter {
     // If there was an error we don't understand..
     if (submissionStatus.error) {
       // Parse the error message.
-      const errorMessage = await submissionStatus.error.message;
+      const errorMessage = submissionStatus.error.message || typeof submissionStatus.error === 'string' ? submissionStatus.error : "An error occured, please try again.";
 
       // Update form to indicate failure and prevent further entry.
       this.updateStatus("failed", "statusFailedUnkown", this.translation["statusFailedUnknown"] + `<br/><qoute>${errorMessage}</qoute>`);
@@ -890,6 +913,19 @@ class flipstarter {
 
       // Update form to indicate success and prevent further entry.
       this.updateStatus(null, "statusContribution", this.translation["statusContribution"]);
+
+      //Show the reward link
+
+      if (this.campaign.rewardUrl && typeof (this.campaign.rewardUrl) === 'string') {
+        //TODO God willing: replace certain parts of url, God willing.
+        const scriptSig = Buffer.from(commitmentObject.inputs[0].unlocking_script, "hex")
+        const { pubKey } = bitbox.Script.decodeP2PKHInput(scriptSig)
+        //TODO God willing: testnet regnet check
+        const address = bitbox.Address.hash160ToCash(bitbox.Crypto.hash160(pubKey), 0x6f)
+        const result = this.campaign.rewardUrl.replace("${address}", address)
+        document.getElementById("donateReward").className = "col s12 m12 l12"
+        document.getElementById("claimRewardLink").setAttribute("href", result)
+      }
     }
   }
 
