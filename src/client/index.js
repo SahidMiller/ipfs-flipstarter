@@ -921,7 +921,18 @@ class flipstarter {
         const scriptSig = Buffer.from(commitmentObject.inputs[0].unlocking_script, "hex")
         const { pubKey } = bitbox.Script.decodeP2PKHInput(scriptSig)
         //TODO God willing: testnet regnet check
-        const address = bitbox.Address.hash160ToCash(bitbox.Crypto.hash160(pubKey), 0x6f)
+
+        let network
+        
+        if(bitbox.Address.isMainnetAddress(this.campaign.recipients[0].address)) {
+          network = 0x05 
+        }
+
+        if(bitbox.Address.isTestnetAddress(this.campaign.recipients[0].address)) {
+          network = 0x6f 
+        }
+
+        const address = bitbox.Address.hash160ToCash(bitbox.Crypto.hash160(pubKey), network)
         const result = this.campaign.rewardUrl.replace("${address}", address)
         document.getElementById("donateReward").className = "col s12 m12 l12"
         document.getElementById("claimRewardLink").setAttribute("href", result)
