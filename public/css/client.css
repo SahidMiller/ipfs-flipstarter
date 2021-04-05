@@ -423,7 +423,8 @@ hr
 
 #donateStatus,
 #donateForm,
-#donateSection
+#providerSection,
+#electrumSection
 {
 	transition: all 1s ease-in-out;
 	opacity: 1;
@@ -468,20 +469,17 @@ hr
 	font-size: 1.5rem;
 }
 
-#donateSection
+#providerSection,
+#electrumSection
 {
 	margin-top: 1rem;
 }
 
-#donateReward.hidden,
-#donateStatus.hidden,
-#donateForm.hidden,
-#donateSection.hidden
-{
+.hidden {
 	opacity: 0;
 	visibility: hidden;
-	margin-top: 0rem;
-	max-height: 0;
+	margin-top: 0rem !important;
+	max-height: 0 !important;
 }
 
 /* Make the range slider handle larger. */

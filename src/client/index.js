@@ -27,9 +27,13 @@ import { bitcoinCashUtilities } from '../utils'
 import { BITBOX } from 'bitbox-sdk'
 import { Buffer } from 'buffer'
 
+import Signup from '@signupcash/provider'
+
+const signup = new Signup.cash({});
 const bitbox = new BITBOX()
 
-const { SATS_PER_BCH, commitmentsPerTransaction, calculateMinerFee, inputPercentModifier } = bitcoinCashUtilities
+const { SATS_PER_BCH, CONTRIBUTOR_MINER_FEE, calculateCampaignerMinerFee } = bitcoinCashUtilities
+
 const interfaceResponses = {
   en: require('../../public/translations/en/interface.json'),
   es: require('../../public/translations/es/interface.json'),
@@ -37,30 +41,12 @@ const interfaceResponses = {
   zh: require('../../public/translations/zh/interface.json')
 }
 
-function isCommitmentRevoked(campaign, commitment) {
-  return commitment.revoked && (!campaign.fullfilled || commitment.revokeTimestamp < campaign.fullfillmentTimestamp)
-}
-
-function doesCommitmentExist(commitments, commitment) {
-  return commitments.findIndex(c => commitment.txHash === c.txHash && commitment.txIndex === c.txIndex) !== -1
-}
-
-function getUnrevokedCommitments(campaign) {
-    
-    return campaign.contributions.reduce((commitments, contribution) => {
-
-      commitments = commitments.concat(contribution.commitments.filter(commitment => !isCommitmentRevoked(campaign, commitment)))
-      return commitments
-
-    }, []);
-}
-
 function getRequestedSatoshis(campaign) {
+
   return campaign.recipients.reduce((sum, recipient) => {
     return sum + recipient.satoshis
   }, 0)
 }
-
 
 /**
  * Encodes a string into binary with support for multibyte content.
@@ -102,12 +88,23 @@ class flipstarter {
 
   async initialize() {
     // Attach event handlers.
+    const self = this
     document
       .getElementById("donationSlider")
       .addEventListener("input", this.updateContributionInput.bind(this));
     document
       .getElementById("donateButton")
-      .addEventListener("click", this.toggleDonationSection.bind(this));
+      .addEventListener("click", () => {
+        self.toggleSection(undefined, "providerSection")
+      });
+    document
+      .getElementById("electrumDonateButton")
+      .addEventListener("click", () => {
+        self.toggleSection(undefined, "electrumSection")
+      });
+      document
+      .getElementById("signupDonateButton")
+      .addEventListener("click", this.donateViaSignUp.bind(this));
 
     document
       .getElementById("template")
@@ -178,6 +175,7 @@ class flipstarter {
 
     //Initialize campaign variables
     this.campaign.requestedSatoshis = getRequestedSatoshis(this.campaign)
+    this.campaign.campaignMinerFee = calculateCampaignerMinerFee(this.campaign.recipients.length)
 
     //TODO Error if nothing is set?
     if (this.campaign.apiType === "ipfs") {
@@ -216,7 +214,7 @@ class flipstarter {
 					<img src='${recipient.image}' alt='${recipient.alias}' />
 					<span>
 						<b>${recipient.alias}</b>
-						<i>${recipientAmount} BCH</i>
+						<i title="${recipient.satoshis}">${recipientAmount} BCH</i>
 					</span>
 				</a>
 			</li>`;
@@ -286,16 +284,20 @@ class flipstarter {
       this.updateContributionList();
 
       // .. update the progress bar and contribution amount
-      const requestedSatoshis = this.campaign.requestedSatoshis || 0
-      const committedSatoshis = this.campaign.committedSatoshis || 0
-      document.getElementById("campaignProgressBar").style.width = ((100 * committedSatoshis) / requestedSatoshis).toFixed(2) + "%";
+      // .. include base campaign miner fee to cover output costs (contributors handle their own inputs, God willing)
+      const requestedSatoshis = (this.campaign.requestedSatoshis || 0) + (this.campaign.campaignMinerFee || 0)
+      const committedSatoshis = (this.campaign.committedSatoshis || 0) - (this.campaign.totalCommittedMinerFees || 0)
 
       const contributionAmount =  (committedSatoshis / SATS_PER_BCH).toFixed(8)
       const contributionBar = (100 * (committedSatoshis / requestedSatoshis)).toFixed(2)
       
       // .. move the current contribution bar accordingly.
-      document.getElementById("compaignContributionAmount").textContent = DOMPurify.sanitize(contributionAmount);
+      //This may not be right, on update, move the other guys stuff, God willing
+      document.getElementById("campaignContributionAmount").textContent = DOMPurify.sanitize(contributionAmount);
       document.getElementById("campaignContributionBar").style.left = contributionBar + "%";
+      document.getElementById("campaignProgressBar").style.width = contributionBar + "%";
+
+      this.updateTimerPresentation()
 
     }).bind(this);
 
@@ -421,17 +423,23 @@ class flipstarter {
       contributionListElement.appendChild(contributionMessage);
 
     } else {
-      const requestedSatoshis = this.campaign.requestedSatoshis
+      
+      //Base percentage from full value including output fees
+      const requestedSatoshis = (this.campaign.requestedSatoshis || 0) + (this.campaign.campaignMinerFee || 0)
+
+      //Display minus fees to reflect satoshis to campaign recipients rather than full contract (until completed)
+      const contributorFees = !this.campaign.fullfilled ? CONTRIBUTOR_MINER_FEE : 0
 
       this.campaign.contributions
         .slice()
         .sort((a, b) => Number(b.satoshis) - Number(a.satoshis))
         .forEach(commitment => {
+          //Base percentage from commitment minus standard fees, God willing
           this.addContributionToList(
             commitment.alias,
             commitment.comment,
-            commitment.satoshis,
-            commitment.satoshis / requestedSatoshis
+            (commitment.satoshis - contributorFees),
+            (commitment.satoshis - contributorFees) / requestedSatoshis
           )
         })
     }
@@ -636,26 +644,36 @@ class flipstarter {
     templateButton.disabled = "disabled";
   }
 
-  async toggleDonationSection(visibility = null) {
-    const donationSection = document.getElementById("donateSection");
+  async toggleSection(visibility = null, section = "providerSection") {
+    const donationSection = document.getElementById(section);
 
+    //Toggle on if not visible and not setting to false
     if (
       visibility !== false &&
       donationSection.className !== "visible col s12 m12"
     ) {
+      
       donationSection.className = "visible col s12 m12";
 
-      // Make name and comment enabled in case it was disabled as a result of an incomplete previous process.
-      document.getElementById("contributionName").disabled = false;
-      document.getElementById("contributionComment").disabled = false;
+      if (section === "electrumSection") {
+        // Make name and comment enabled in case it was disabled as a result of an incomplete previous process.
+        document.getElementById("contributionName").disabled = false;
+        document.getElementById("contributionComment").disabled = false;
+      }
 
       // Disable the action button.
       document.getElementById("donateButton").disabled = true;
+    
     } else {
+      
+      //Toggle off if visible or setting to false
       donationSection.className = "hidden col s12 m12";
 
-      // Enable the action button.
-      document.getElementById("donateButton").disabled = false;
+      if (section === "providerSection") {
+        // Enable the action button.
+        document.getElementById("electrumSection").className = "hidden col s12 m12";
+        document.getElementById("donateButton").disabled = false;
+      }
     }
   }
 
@@ -731,7 +749,6 @@ class flipstarter {
         },
         donation: {
           amount: Number(satoshis),
-          //fee: Number(this.calculateMinerFee())
         },
         expires: this.campaign.expires,
       };
@@ -758,15 +775,17 @@ class flipstarter {
 
   async updateContributionInput(event) {
     let donationAmount;
-    const committedSatoshis = this.campaign.committedSatoshis || 0
-    const requestedSatoshis = this.campaign.requestedSatoshis
+
+    const committedSatoshis = (this.campaign.committedSatoshis || 0) - (this.campaign.totalCommittedMinerFees || 0)
+    const requestedSatoshis = this.campaign.requestedSatoshis + this.campaign.campaignMinerFee
 
     // Hide donation section.
-    this.toggleDonationSection(false);
+    this.toggleSection(false, "providerSection");
 
     // Enable the action button.
     document.getElementById("donateButton").disabled = false;
 
+    const percentage = parseFloat(event.target.value) / 100
     if (Number(event.target.value) <= 1) {
       // Reset metadata.
       document.getElementById("contributionName").value = "";
@@ -777,10 +796,11 @@ class flipstarter {
 
       // Set amount to 0.
       donationAmount = 0;
+
     } else {
 
-      const amount = (this.calculateMinerFee() + requestedSatoshis - committedSatoshis) * (await this.inputPercentModifier(event.target.value))
-      donationAmount = Math.ceil(amount);
+      //Add per contribution fee to donation amount, God willing
+      donationAmount = CONTRIBUTOR_MINER_FEE + Math.ceil((requestedSatoshis - committedSatoshis) * percentage);
     }
 
     if (Number(event.target.value) >= 100) {
@@ -793,33 +813,59 @@ class flipstarter {
     }
     
     const contributionBarOffset = (100 * (committedSatoshis / requestedSatoshis)).toFixed(2)
-    const contributionBarWidth = (100 * (await this.inputPercentModifier(event.target.value)) * (1 - committedSatoshis / requestedSatoshis)).toFixed(2)
+    const contributionBarWidth = (event.target.value * (1 - committedSatoshis / requestedSatoshis)).toFixed(2)
+
     document.getElementById("campaignContributionBar").style.left = contributionBarOffset + "%";
     document.getElementById("campaignContributionBar").style.width = contributionBarWidth + "%";
     
     const bchTotal = (donationAmount / SATS_PER_BCH).toLocaleString()
     const bchCost = (this.currencyValue * (donationAmount / SATS_PER_BCH)).toFixed(2)
+    
     document.getElementById("donationAmount").textContent = `${bchTotal} BCH (${bchCost} ${this.currencyCode})`;
     document.getElementById("donationAmount").setAttribute("data-satoshis", donationAmount);
 
     // Update the template text.
     this.updateTemplate();
   }
+ 
+  async donateViaSignUp() {
 
-  calculateMinerFee() {
-    // Get the number of recipients and contributions.
-    const RECIPIENT_COUNT = this.campaign.recipients.length;
-    const COMMITMENT_COUNT = this.campaign.commitmentCount || 0;
+    try {
+      // Get the number of satoshis the user wants to donate.
+      const satoshis = document.getElementById("donationAmount").getAttribute("data-satoshis");
 
-    return calculateMinerFee(RECIPIENT_COUNT, COMMITMENT_COUNT)
-  }
+      // If the user wants to donate some satoshis..
+      if (satoshis) {
 
-  async inputPercentModifier(inputPercent) {
-    const committedSatoshis = this.campaign.committedSatoshis || 0
-    const requestedSatoshis = this.campaign.requestedSatoshis || 0
-    const commitmentCount = this.campaign.commitmentCount || 0
+        let recipients = []
 
-    return inputPercentModifier(inputPercent, this.calculateMinerFee(), requestedSatoshis, committedSatoshis, commitmentCount)
+        // For each recipient..
+        for (const recipientIndex in this.campaign.recipients) {
+          const outputValue = this.campaign.recipients[recipientIndex].satoshis;
+          const outputAddress = this.campaign.recipients[recipientIndex].address;
+
+          // Add the recipients outputs to the request.
+          recipients.push({ value: outputValue, address: outputAddress });
+        }
+
+        const { payload } = await signup.contribute(Number(satoshis), "SAT", {
+          title: this.campaign.title,
+          expires: this.campaign.expires,
+          alias: document.getElementById("contributionName").value,
+          comment: document.getElementById("contributionComment").value,
+          includingFee: CONTRIBUTOR_MINER_FEE
+        }, recipients);
+
+        document.getElementById("commitment").value = payload
+        this.parseCommitment()
+      }         
+
+    } catch (err) {
+
+      if (err && err.status === 'ERROR') {
+        console.log(err.message)
+      }
+    }
   }
 
   /**
@@ -944,7 +990,8 @@ class flipstarter {
     const donateField = document.getElementById("donateField");
     const donateStatus = document.getElementById("donateStatus");
     const donateForm = document.getElementById("donateForm");
-    const donateSection = document.getElementById("donateSection");
+    const providerSection = document.getElementById("providerSection");
+    const electrumSection = document.getElementById("electrumSection");
 
     // Check if we already have a fullfillment status message..
     const fullfillmentStatus = donateField.className === "row fullfilled";
@@ -956,7 +1003,8 @@ class flipstarter {
 
       // Hide form and section.
       donateForm.className = "col s12 m12 l12 hidden";
-      donateSection.className = "col s12 m12 l12 hidden";
+      electrumSection.className = "col s12 m12 l12 hidden";
+      providerSection.className = "col s12 m12 l12 hidden";
 
       // Add status content.
       donateStatus.setAttribute("data-string", label);
