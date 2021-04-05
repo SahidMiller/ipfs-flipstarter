@@ -7,10 +7,10 @@
     "test": "tests"
   },
   "scripts": {
-    "dev:server": "npx webpack --env='development'",
-    "dev:create": "npx webpack --env='development' --env='noServer'",
-    "dev:client": "npx webpack --env='development' --env='noServer' --env='campaignFilePath' --env='indexFilePath'",
-    "dev:build": "npx webpack --env='development'",
+    "dev:server": "npx webpack --env=development",
+    "dev:create": "npx webpack --env=development --env=noServer",
+    "dev:client": "npx webpack --env=development --env=noServer --env=campaignFilePath --env=indexFilePath",
+    "dev:build": "npx webpack --env=development",
     "build": "npx webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
