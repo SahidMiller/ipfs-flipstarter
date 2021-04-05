@@ -7,12 +7,17 @@
     "test": "tests"
   },
   "scripts": {
-    "dev-client": "npx webpack --env='development' --env='noServer' --env='campaignFilePath' --env='indexFilePath'",
+    "dev:server": "npx webpack --env='development'",
+    "dev:create": "npx webpack --env='development' --env='noServer'",
+    "dev:client": "npx webpack --env='development' --env='noServer' --env='campaignFilePath' --env='indexFilePath'",
+    "dev:build": "npx webpack --env='development'",
+    "build": "npx webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@signup/provider": "git+https://github.com/SahidMiller/signup-core.git#flipstarter",
     "assert": "^2.0.0",
     "copy-webpack-plugin": "^7.0.0",
     "crypto-browserify": "^3.12.0",
@@ -42,6 +47,7 @@
     "webpack-series": "github:sahidmiller/webpack-series"
   },
   "dependencies": {
+    "@signupcash/provider": "file:../signup-core/packages/provider",
     "bchaddrjs": "^0.5.2",
     "bootstrap": "^4.5.3",
     "canvas-confetti": "^1.3.3",

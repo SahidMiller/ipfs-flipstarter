@@ -1,4 +1,5 @@
 import EventEmitter from 'events'
+import { calculateTotalContributorMinerFees } from "../utils/bitcoinCashUtilities.js"
 
 export class HttpServerConnector extends EventEmitter {
 	
@@ -13,7 +14,8 @@ export class HttpServerConnector extends EventEmitter {
 		this.campaign.contributions = this.campaign.contributions || []
 		this.campaign.commitmentCount = this.campaign.contributions.length
 		this.campaign.committedSatoshis = getCommittedSatoshis(this.campaign.contributions)
-		
+		this.campaign.totalCommittedMinerFees = calculateTotalContributorMinerFees(this.campaign.commitmentCount)
+
 		return this.campaign
 	}
 
@@ -36,7 +38,12 @@ export class HttpServerConnector extends EventEmitter {
 	      submissionOptions
 	    );
 
-	    return await response.json()
+	    const serialized = await response.json()
+		if (response.status !== 200 && serialized) {
+			return { error: serialized.status || (serialized.error && serialized.error.message || serialized.error)}
+		} else {
+			return serialized
+		}
 	}
 
 	listen(campaign) {
@@ -47,8 +54,8 @@ export class HttpServerConnector extends EventEmitter {
 	    const eventSource = new EventSource(eventSourceApi, { cors: 'no-cors' });
 
 		const addContribution = (eventData) => {
-		      // .. store the contribution locally.
-			campaign.contributions[eventData.contribution_id] = {
+		    // .. store the contribution locally.
+			campaign.contributions.push({
 				commitmentId:  eventData.commitment_id,
 				contributionId: eventData.contribution_id,
 				alias: eventData.user_alias,
@@ -59,22 +66,48 @@ export class HttpServerConnector extends EventEmitter {
 				unlockScript: eventData.unlock_script,
 				seqNum: eventData.sequence_number,
 				satoshis: eventData.satoshis
-			};
-
-			campaign.contributions = campaign.contributions || []
-			campaign.commitmentCount = campaign.contributions.length
-			campaign.committedSatoshis = getCommittedSatoshis(campaign.contributions)
+			});
 		}
 
 		eventSource.addEventListener("init", (event) => {
-			const contributions = JSON.parse(event.data);
-			contributions.forEach(addContribution)
+			const campaignDetails = JSON.parse(event.data);
+			
+			campaignDetails.contributions.forEach(addContribution)
+
+			campaign.commitmentCount = campaign.contributions.length
+			campaign.committedSatoshis = getCommittedSatoshis(campaign.contributions)
+			campaign.totalCommittedMinerFees = calculateTotalContributorMinerFees(campaign.commitmentCount)
+
+			// Special case: fullfillment.
+			if (campaignDetails.fullfillment_transaction) {
+			
+				campaign.fullfilled = true
+				campaign.fullfillmentTimestamp = campaignDetails.fullfillment_timestamp
+				campaign.fullfillmentTx = campaignDetails.fullfillment_transaction
+				
+				//Once fullfilled, no need to subtract fees from total in case of not hitting target fees but fullfilled.
+				campaign.totalCommittedMinerFees = 0
+				campaign.campaignMinerFee = 0
+			}
+
 			self.emit('update', campaign)
 		})
 
 	    eventSource.addEventListener("contribution", (event) => {
 			const eventData = JSON.parse(event.data);
+
+			//Remove duplicates before adding
+			campaign.contributions = (campaign.contributions || []).filter(contribution => 
+				contribution.contributionId !== eventData.contribution_id && 
+				contribution.commitmentId !== eventData.commitment_id
+			)
+			
 			addContribution(eventData)
+
+			campaign.commitmentCount = campaign.contributions.length
+			campaign.committedSatoshis = getCommittedSatoshis(campaign.contributions)
+			campaign.totalCommittedMinerFees = calculateTotalContributorMinerFees(campaign.commitmentCount)
+
 			self.emit('update', campaign)
 		})
 
@@ -88,8 +121,10 @@ export class HttpServerConnector extends EventEmitter {
 				if (campaign.contributions[eventData.contribution_id]) {
 					// Delete it locally.
 					delete campaign.contributions[eventData.contribution_id];
+					
 					campaign.commitmentCount = campaign.contributions.length
 					campaign.committedSatoshis = getCommittedSatoshis(campaign.contributions)
+					campaign.totalCommittedMinerFees = calculateTotalContributorMinerFees(campaign.commitmentCount)
 
 					self.emit('update', campaign)
 				}
@@ -103,7 +138,7 @@ export class HttpServerConnector extends EventEmitter {
 			if (eventData.fullfillment_transaction) {
 			
 				campaign.fullfilled = true
-				campaign.fullfillmentTimestamp = evendData.fullfillment_timestamp
+				campaign.fullfillmentTimestamp = eventData.fullfillment_timestamp
 				campaign.fullfillmentTx = eventData.fullfillment_transaction
 			}
   
