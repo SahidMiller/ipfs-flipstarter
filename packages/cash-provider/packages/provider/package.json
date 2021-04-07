@@ -7,6 +7,9 @@
     "last 2 version",
     "> 1%"
   ],
+  "ipfs": {
+    "root": "./dist"
+  },
   "scripts": {
     "start": "serve ./ -l 5000",
     "build:dev": "NODE_ENV=development webpack",
