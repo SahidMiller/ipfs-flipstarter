@@ -23,7 +23,7 @@ const DOMPurify = createDOMPurify(window)
 import confetti from "canvas-confetti"
 import { HttpServerConnector } from './server-connector.js'
 import { Libp2pServerConnector } from './server-ipfs-connector.js'
-import { bitcoinCashUtilities } from '../utils'
+import { bitcoinCashUtilities } from '@ipfs-flipstarter/utils'
 import { BITBOX } from 'bitbox-sdk'
 import { Buffer } from 'buffer'
 

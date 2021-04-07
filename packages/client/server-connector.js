@@ -1,5 +1,6 @@
 import EventEmitter from 'events'
-import { calculateTotalContributorMinerFees } from "../utils/bitcoinCashUtilities.js"
+import { bitcoinCashUtilities } from "@ipfs-flipstarter/utils"
+const { calculateTotalContributorMinerFees } = bitcoinCashUtilities
 
 export class HttpServerConnector extends EventEmitter {
 	

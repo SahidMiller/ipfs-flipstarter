@@ -1,0 +1,40 @@
+{
+  "name": "@ipfs-flipstarter/server",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx webpack",
+    "dev": "npx webpack --mode=development",
+    "clean": "rm -rf ./dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "ipfs": {
+    "root": "./dist"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "html-webpack-plugin": "^5.3.1",
+    "html-webpack-tags-plugin": "^3.0.0",
+    "remove-files-webpack-plugin": "^1.4.4",
+    "webpack": "^5.30.0",
+    "webpack-cdn-plugin": "^3.3.1",
+    "webpack-cli": "^4.6.0",
+    "webpack-plugin-serve": "^1.4.1"
+  },
+  "dependencies": {
+    "@ipfs-flipstarter/create": "^0.0.1",
+    "bootstrap": "^4.6.0",
+    "cross-env": "^7.0.3",
+    "electrum-cash": "^2.0.7",
+    "ipfs": "^0.54.4",
+    "jquery": "3.5.1",
+    "libp2p-flipstarter-server": "git+https://github.com/sahidmiller/libp2p-flipstarter-server.git",
+    "libp2p-stream-helper": "git+https://github.com/sahidmiller/libp2p-stream-helper.git",
+    "moment": "^2.29.1",
+    "p-timeout": "^4.1.0",
+    "popper.js": "^1.16.1"
+  }
+}

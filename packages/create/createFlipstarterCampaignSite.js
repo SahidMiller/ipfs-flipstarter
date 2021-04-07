@@ -13,7 +13,7 @@ export default async function createFlipstarterCampaignSite(ipfs, initialCampaig
 
 async function uploadSite(ipfs, indexLink, campaignLink) {
 
-  const rootDAG = (await ipfs.dag.get(__FLIPSTARTER_CLIENT_SITE_CID__)).value
+  const rootDAG = (await ipfs.dag.get(__FLIPSTARTER_CLIENT_CID__)).value
 
   rootDAG.rmLink("campaign.json") //If campaign.json is included in hash due to testing
   rootDAG.addLink(campaignLink)
