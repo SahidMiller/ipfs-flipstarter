@@ -90,6 +90,7 @@ module.exports = {
     __SIGNUP_BLOCKEXPLORER_TX__: JSON.stringify(
       process.env.NODE_ENV === "development" ?
         "https://www.blockchain.com/bch-testnet/tx/" :
-        "https://blockchair.com/bitcoin-cash/transaction/")
+        "https://blockchair.com/bitcoin-cash/transaction/"),
+    __SIGNUP_WALLET_CID__: JSON.stringify(process.env.SIGNUP_WALLET_CID)
   })]
 };

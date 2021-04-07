@@ -3,6 +3,9 @@
   "version": "1.2.1",
   "description": "",
   "main": "public/index.html",
+  "ipfs": {
+    "root": "./public"
+  },
   "scripts": {
     "start": "serve -l 5050 -s ./public",
     "build": "NODE_ENV=production webpack",
