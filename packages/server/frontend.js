@@ -46,7 +46,7 @@ export default async function initialize() {
   }
 
   $("#campaigns").on("click", "#add", function() {
-    let url = "https://ipfs.io/ipfs/" + __FLIPSTARTER_CREATE_PAGE_CID__ 
+    let url = "https://ipfs.io/ipfs/" + __FLIPSTARTER_CREATE_CID__ 
 
     if (multiaddress) {
       url = url + "?type=ipfs&address=" + multiaddress

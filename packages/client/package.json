@@ -1,0 +1,48 @@
+{
+	"name": "@ipfs-flipstarter/client",
+	"version": "0.0.1",
+	"description": "",
+	"main": "index.js",
+	"author": "",
+	"license": "ISC",
+	"scripts": {
+		"build": "npx webpack",
+		"dev": "npx webpack --mode=development",
+		"clean": "rm -rf ./dist"
+	},
+	"ipfs": {
+		"root": "./dist",
+		"envVar": "FLIPSTARTER_CLIENT_CID"
+	},
+	"devDependencies": {
+		"copy-webpack-plugin": "^8.1.0",
+		"cross-env": "^7.0.3",
+		"html-webpack-plugin": "^5.3.1",
+		"html-webpack-tags-plugin": "^3.0.0",
+		"remove-files-webpack-plugin": "^1.4.4",
+		"webpack": "^5.30.0",
+		"webpack-cdn-plugin": "^3.3.1",
+		"webpack-cli": "^4.6.0",
+		"webpack-plugin-serve": "^1.4.1"
+	},
+	"dependencies": {
+		"@signupcash/provider": "^1.0.1",
+		"bitbox-sdk": "^8.11.2",
+		"canvas-confetti": "^1.4.0",
+		"dompurify": "^2.2.7",
+		"ipfs": "^0.54.4",
+		"libp2p-stream-helper": "https://github.com/sahidmiller/libp2p-stream-helper.git",
+		"moment": "^2.29.1",
+		"mustache": "^4.2.0",
+		"p-retry": "^4.5.0",
+		"p-timeout": "^4.1.0",
+		"rehype-raw": "^5.1.0",
+		"rehype-stringify": "^8.0.0",
+		"remark": "^13.0.0",
+		"remark-generic-extensions": "^1.4.0",
+		"remark-gfm": "^1.0.0",
+		"remark-parse": "^9.0.0",
+		"remark-rehype": "^8.0.0",
+		"unified": "^9.2.1"
+	}
+}
