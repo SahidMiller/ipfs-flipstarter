@@ -8,7 +8,10 @@ const BUILT_FLAG = "deployed-on-ipfs"
 
 async function clean(log) {
     const packages = await loadPackages();
-    packages.forEach(package => changes.unbuild(package, { log })(BUILT_FLAG))
+    packages.forEach(package => {
+        changes.unbuild(package, { log })(BUILT_FLAG + ":development")
+        changes.unbuild(package, { log })(BUILT_FLAG + ":production")
+    })
     iter.parallel(packages, { log })((package) => exec.script(package, { log })("clean"))
 }
 
@@ -42,7 +45,7 @@ async function deploy(log, { verbose = true, mode = "production" } = {}) {
     const dependencies = filters.includeFilteredDeps(packages)([package])
 
     //Run build on all the packages not deployed on ipfs yet, God willing.
-    if (package.scripts.build && !changes.isBuilt(package)(BUILT_FLAG)) {
+    if (package.scripts.build && !changes.isBuilt(package)(BUILT_FLAG + ":" + mode)) {
         
         // Pass env variables of dependencies to the dependent package, God willing.
         let envVars = dependencies.reduce((vars, package) => {
@@ -66,7 +69,7 @@ async function deploy(log, { verbose = true, mode = "production" } = {}) {
         console.log(await exec.command(package, { silent: false, log })(command))
 
         //Mark as deployed on ipfs, God willing.
-        changes.build(package, { log })(BUILT_FLAG)
+        changes.build(package, { log })(BUILT_FLAG + ":" + mode)
 
     } else {
 
@@ -142,7 +145,7 @@ async function watch(log) {
     
     const rebuildPackage = async (path) => {
         const package = packages.find(package => path.indexOf(package.location) === 0)
-        changes.unbuild(package, { log })(BUILT_FLAG)
+        changes.unbuild(package, { log })(BUILT_FLAG + ":" + mode)
         log.info("Rebuilding", package.name);
         await deploy(log, { verbose: false, mode: "development" })
         log.info("Finished", package.name);
