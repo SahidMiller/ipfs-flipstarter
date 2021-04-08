@@ -5,7 +5,7 @@ import { css } from "emotion";
 const SIGNUP_ORIGIN =
   process.env.NODE_ENV === "development"
     ? "http://localhost:5050"
-    : "https://wallet.signup.cash";
+    : "https://dweb.link/ipfs/" + process.env.DWEB_WALLET_CID;
 
 const SIGNUP_TX_BRIDGE =
   process.env.NODE_ENV === "development"

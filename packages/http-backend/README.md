@@ -43,7 +43,7 @@ And open up [localhost:3000](http://localhost:3000) in your browser.
 
 ```
   ENV FLIPSTARTER_IPFS_GATEWAY_URL="http://..."       //defaults to "https://ipfs.io"
-  ENV FLIPSTARTER_IPFS_CREATE_CID="Qm..."             //defaults to QmfZZXZPTLGk3e3h5oGX25qtXf4Nmdqv5RZgUyM44CaDbF"
+  ENV FLIPSTARTER_CREATE_CID="Qm..."             //defaults to QmfZZXZPTLGk3e3h5oGX25qtXf4Nmdqv5RZgUyM44CaDbF"
 
   ENV FLIPSTARTER_API_URL="https://..."               //defaults to req.get('host')
   

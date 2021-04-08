@@ -1,7 +1,7 @@
 const { merge } = require('webpack-merge')
 const TerserPlugin = require('terser-webpack-plugin')
 
-module.exports = (webpack, config) => {
+module.exports = (webpack, config, overrideRules = false) => {
 
 	if (process.env.NODE_ENV === "production") {
 
@@ -9,7 +9,12 @@ module.exports = (webpack, config) => {
 		delete commonConfig.devtool
 		commonConfig.optimization = {
 			minimize: true,
-			minimizer: [new TerserPlugin()]
+			minimizer: [new TerserPlugin({
+				terserOptions: {
+					keep_fnames: true,
+					safari10: true,
+				},
+			})]
 		}
 	}
 
@@ -35,7 +40,7 @@ module.exports = (webpack, config) => {
 		  },
 		},
 		module: {
-		  rules: [
+		  rules: (!overrideRules && [
 			{ test: /\.html$/, use: 'html-loader' },
 			{ 
 			  test: /\.css$/, 
@@ -72,7 +77,7 @@ module.exports = (webpack, config) => {
 				  name: 'build/[name].[ext]'
 			  }
 			}
-		  ]
+		  ])
 		},
 		plugins: [
 		  new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),

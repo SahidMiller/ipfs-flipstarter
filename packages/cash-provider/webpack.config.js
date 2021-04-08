@@ -5,7 +5,7 @@ module.exports = {
     client: "./src/provider.js",
   },
   mode: process.env.NODE_ENV,
-  watch: process.env.NODE_ENV === "development",
+  watch: false,
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "provider.js",

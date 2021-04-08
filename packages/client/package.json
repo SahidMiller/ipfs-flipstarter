@@ -6,8 +6,8 @@
 	"author": "",
 	"license": "ISC",
 	"scripts": {
+    "start": "npx serve ./ -l 55554",
 		"build": "npx webpack",
-		"dev": "npx webpack --mode=development",
 		"clean": "rm -rf ./dist"
 	},
 	"ipfs": {
@@ -26,7 +26,7 @@
 		"webpack-plugin-serve": "^1.4.1"
 	},
 	"dependencies": {
-		"@signupcash/provider": "^1.0.1",
+    	"@dweb-cash/provider": "^1.0.1",
 		"bitbox-sdk": "^8.11.2",
 		"canvas-confetti": "^1.4.0",
 		"dompurify": "^2.2.7",

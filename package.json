@@ -13,11 +13,11 @@
     "./packages/*"
   ],
   "scripts": {
-    "build": "lerna-script deploy-on-ipfs",
-    "dev": "lerna-script deploy-on-ipfs-watcher",
-    "clean": "lerna-script deploy-on-ipfs-cleaner",
+    "build": "npx lerna-script deploy-on-ipfs",
+    "dev": "npx lerna-script deploy-on-ipfs-watcher",
+    "clean": "npx lerna-script deploy-on-ipfs-cleaner",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lsrun": "lerna-script"
+    "lsrun": "npx lerna-script"
   },
   "devDependencies": {
     "assert": "^2.0.0",

@@ -27,7 +27,7 @@ import { bitcoinCashUtilities } from '@ipfs-flipstarter/utils'
 import { BITBOX } from 'bitbox-sdk'
 import { Buffer } from 'buffer'
 
-import Signup from '@signupcash/provider'
+import Signup from '@dweb-cash/provider'
 
 const signup = new Signup.cash({});
 const bitbox = new BITBOX()
