@@ -3,7 +3,6 @@ const merge = require('../../configs/webpack')
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const RemovePlugin = require('remove-files-webpack-plugin')
-const { WebpackPluginServe: Serve } = require('webpack-plugin-serve')
 const WebpackCdnPlugin = require('webpack-cdn-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const path = require('path')
@@ -17,28 +16,20 @@ module.exports = (env = {}) => {
     //Create logic overrides these hardcoded cids
     if (process.env.NODE_ENV === "development") {
         
-        if(env.campaignFilePath || env.indexFilePath) { 
+        if(process.env.FLIPSTARTER_CAMPAIGN_FILE_PATH || process.env.FLIPSTARTER_INDEX_FILE_PATH) { 
             const patterns = []
             
-            if (env.campaignFilePath) {
-                const campaignFilePath = typeof env.campaignFilePath === 'string' ? env.campaignFilePath : "../../tests/assets/campaign.json"
+            if (process.env.FLIPSTARTER_CAMPAIGN_FILE_PATH) {
+                const campaignFilePath = typeof process.env.FLIPSTARTER_CAMPAIGN_FILE_PATH === 'string' ? process.env.FLIPSTARTER_CAMPAIGN_FILE_PATH : "../../tests/assets/campaign.json"
                 patterns.push({ from: campaignFilePath })
             }
     
-            if (env.indexFilePath) {
-                const indexFilePath = typeof env.indexFilePath === 'string' ? env.indexFilePath : "../../tests/assets/index.html"
+            if (process.env.FLIPSTARTER_INDEX_FILE_PATH) {
+                const indexFilePath = typeof process.env.FLIPSTARTER_INDEX_FILE_PATH === 'string' ? process.env.FLIPSTARTER_INDEX_FILE_PATH : "../../tests/assets/index.html"
                 patterns.push({ from: indexFilePath })
             }
     
-            plugins.push(new CopyWebpackPlugin({
-                patterns
-            }))
-    
-            serveApp['webpack-plugin-serve/client'] = 'webpack-plugin-serve/client'
-            plugins.push(new Serve({
-                static: "./dist/",
-                port: 55554
-            }))
+            plugins.push(new CopyWebpackPlugin({ patterns }))
         }
     
         plugins.push(new WebpackCdnPlugin({
@@ -62,7 +53,7 @@ module.exports = (env = {}) => {
             new RemovePlugin({
                 before: {
                     include: [
-                        './dist/'
+                        './dist/*'
                     ],
                     log: false,
                     logWarning: true,

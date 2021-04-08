@@ -1,27 +1,21 @@
-# Signup Core
+# Signup Provider
 
-This repository contains the official libraries for the core functionality of [signup.cash](https://signup.cash), mostly the client side library and key signer.
+This library provides the Signup wallet SDK to the web applications. It's a framework agnostic library that helps you to onboard BCH users, process their transactions or ask them to sign any arbitrary payload with their wallet without having your app exposed to user's private key.
 
-## What is Signup?
+[Signup](https://signup.cash) is a non-custodial in-browser DApp wallet for Bitcoin Cash applications on the web.
 
-Signup is a non-custodial platform to build blockchain apps exclusively for Bitcoin Cash ecosystem. You can use this library to request your users to pay, and ask them to sign arbitrary payloads without having to think about security measures and low level transaction building.
+## Setup
 
-You can read [this blog post](https://read.cash/@p0oker/a-sneak-peek-into-signups-new-dapp-architecture-for-bitcoin-cash-ccf6af56) in order to understand how it works better.
+You can use this package in NodeJS or in the browser (but you will need a bundler for that)
 
-## Demos
+```
+npm install @signupcash/provider
+```
 
-To be updated...
+## Documentation
 
-## Do I need a specific framework to use it?
+Check out [our documentation](https://docs.signup.cash) to understand how to work with this library and check out the [examples in Github](https://github.com/signupcash/signup-core/tree/master/packages/provider/examples) for more practical use cases.
 
-Signup is framework agnostic, you can import it in modern environments like React, Vue, ... apps or just drop a script tag and use it with plain JavaScript.
+## License
 
-## API Docs
-
-Please visit the [official docs](https://docs.signup.cash) in order to get started with Signup.
-
-## Contribution
-
-Signup is a fully open source project and community involvement is highly encouraged. Feel free to open an issue, submit a Pull Request or join [our Telegram group](https://t.me/joinchat/NAXHtw_YK7Qu_MDJt3aOZw) for more discussions!
-
-If you're doing a PR with many changes, please first get a confirmation through an issue or a message in Telegram!
+Licensed under Mozilla Public License 2.0

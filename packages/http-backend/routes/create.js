@@ -25,7 +25,7 @@ const create = async function (req, res) {
     gatewayUrl = "//" + gatewayUrl
   }
 
-  const redirectUrl = `${gatewayUrl}/ipfs/${process.env.FLIPSTARTER_IPFS_CREATE_CID}?api_address=${apiUrl}&api_type=https` 
+  const redirectUrl = `${gatewayUrl}/ipfs/${process.env.FLIPSTARTER_CREATE_CID}?api_address=${apiUrl}&api_type=https` 
   res.redirect(redirectUrl);
 
   // Notify the server admin that a campaign has been requested.

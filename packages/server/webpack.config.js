@@ -49,7 +49,7 @@ module.exports = merge(webpack, {
     plugins: [
         new RemovePlugin({
             before: {
-                include: ['./dist'],
+                include: ['./dist/*'],
                 log: false,
                 logWarning: true,
                 logError: true,

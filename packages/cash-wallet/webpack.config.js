@@ -1,15 +1,12 @@
 const webpack = require("webpack")
-const path = require("path");
-const TerserPlugin = require("terser-webpack-plugin");
+const merge = require('../../configs/webpack')
 
-module.exports = {
+const path = require("path");
+
+module.exports = merge(webpack, {
   entry: {
     signer: "./src/index.js",
     worker: "./src/worker/worker.js",
-  },
-  node: {
-    net: 'empty',
-    tls: 'empty'
   },
   resolve: {
     alias: {
@@ -22,7 +19,7 @@ module.exports = {
     },
   },
   mode: process.env.NODE_ENV,
-  watch: process.env.NODE_ENV === "development",
+  watch: false,
   output: {
     path: path.resolve(__dirname, "public/js"),
     filename: "[name].lib.js",
@@ -30,16 +27,6 @@ module.exports = {
   devtool: "source-map",
   watchOptions: {
     ignored: /node_modules/,
-  },
-  optimization: {
-    minimizer: [
-      new TerserPlugin({
-        terserOptions: {
-          keep_fnames: true,
-          safari10: true,
-        },
-      }),
-    ],
   },
   stats: {
     warnings: process.env.NODE_ENV === "development",
@@ -90,7 +77,6 @@ module.exports = {
     __SIGNUP_BLOCKEXPLORER_TX__: JSON.stringify(
       process.env.NODE_ENV === "development" ?
         "https://www.blockchain.com/bch-testnet/tx/" :
-        "https://blockchair.com/bitcoin-cash/transaction/"),
-    __SIGNUP_WALLET_CID__: JSON.stringify(process.env.SIGNUP_WALLET_CID)
+        "https://blockchair.com/bitcoin-cash/transaction/")
   })]
-};
+}, true);
