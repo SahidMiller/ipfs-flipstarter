@@ -32,6 +32,7 @@ export class HttpServerConnector extends EventEmitter {
 	      body: JSON.stringify(contribution),
 	    };
 
+		// TODO God willing: check if campaign has an ID (if not may not even consider as https api nor ipfs)
 		const apiUrl = this.campaign.address.replace(/\/$/, "") + "/submit/" + this.campaign.id
 	    // Submit the commitment to the backend.
 	    const response = await fetch(
@@ -51,10 +52,19 @@ export class HttpServerConnector extends EventEmitter {
 		const self = this
 		this.campaign = campaign
 
+		//TODO God willing: check that campaign has an API address, or else no events AFAIK.
+		//TODO God willing: similarly for ID to identify ourselves with API, God willing.
 		let eventSourceApi = this.campaign.address.replace(/\/$/, "") + "/events/" + this.campaign.id
 	    const eventSource = new EventSource(eventSourceApi, { cors: 'no-cors' });
 
 		const addContribution = (eventData) => {
+			//Remove duplicates before adding
+			//may have multiple "init" events
+			campaign.contributions = (campaign.contributions || []).filter(contribution => 
+				contribution.contributionId !== eventData.contribution_id && 
+				contribution.commitmentId !== eventData.commitment_id
+			)
+
 		    // .. store the contribution locally.
 			campaign.contributions.push({
 				commitmentId:  eventData.commitment_id,
@@ -96,13 +106,7 @@ export class HttpServerConnector extends EventEmitter {
 
 	    eventSource.addEventListener("contribution", (event) => {
 			const eventData = JSON.parse(event.data);
-
-			//Remove duplicates before adding
-			campaign.contributions = (campaign.contributions || []).filter(contribution => 
-				contribution.contributionId !== eventData.contribution_id && 
-				contribution.commitmentId !== eventData.commitment_id
-			)
-			
+	
 			addContribution(eventData)
 
 			campaign.commitmentCount = campaign.contributions.length

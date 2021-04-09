@@ -250,10 +250,17 @@
                 <option value="https">HTTPS</option>
               </select>
             </div>
-            <div class="form-group col-8">
+            <div id="api_address_container" class="form-group col-8">
               <label for="api_address">Address</label>
               <input id="api_address" name="api_address" type="text" class="form-control" required>
             </div>
+            <div id="api_id_container" class="form-group col-4 d-none">
+              <label for="api_id">Id</label>
+              <input id="api_id" name="api_id" type="text" class="form-control">
+            </div>
+            <div class="form-group col-8">
+              <input id="api_confirmation" name="api_confirmation" type="checkbox" class="form-control" style="width: auto;height: auto;display: inline;" checked>
+              <small style="padding-left: 5px; color: #525252;">Send request and wait for successful API Endpoint response before creating.</small></div>
           </div>
           <hr>
           <p>Please <strong>disable your popup blocker</strong> immediately and check that everything is correct, you will not be able to edit your campaign later on. Leave this tab open for the duration of your campaign.</p>
