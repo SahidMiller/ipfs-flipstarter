@@ -1,5 +1,5 @@
 {
-  "name": "flipstarter-backend",
+  "name": "@ipfs-flipstarter/http-backend",
   "version": "0.0.1",
   "description": "",
   "main": "server.js",
@@ -12,6 +12,12 @@
     "basic": "npx cross-env FLIPSTARTER_API_AUTH=\"pending-contributions\" DEBUG=\"flipstarter:status, flipstarter:server\" node --use-strict server.js",
     "start": "npm run verbose",
     "start-no-debug": "node --use-strict server.js"
+  },
+  "env.dev": {
+    "FLIPSTARTER_IPFS_GATEWAY_URL": "https://localhost",
+    "FLIPSTARTER_API_AUTH": "pending-contributions",
+    "FLIPSTARTER_TARGET_FEE_RATE": 1
+
   },
   "author": "Jonathan Silverblood",
   "license": "MIT",
