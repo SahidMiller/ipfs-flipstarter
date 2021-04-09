@@ -275,9 +275,6 @@ class flipstarter {
 
         // Trigger celebration.
         celebration(0.11);
-
-        // Update timer and status message to indicate successful fullfillment.
-        this.showFullfilledStatus(this.campaign.fullfillmentTx);
       }
 
       // .. update the contribution list.
@@ -307,6 +304,14 @@ class flipstarter {
   }
 
   showFullfilledStatus(fullfillmentTx) {
+    // Check if we already have a fullfillment status message..
+    const donateField = document.getElementById("donateField");
+    const fullfilled = donateField.className.indexOf("fullfilled") !== -1;
+
+    if (fullfilled) {
+      return
+    }
+    
     // Mark the campaign as fullfilled which prevents form entry.
     this.updateStatus("fullfilled", "statusFullfilled", this.translation["statusFullfilled"]);
 

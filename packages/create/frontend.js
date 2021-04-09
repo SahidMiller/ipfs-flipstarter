@@ -33,6 +33,7 @@ export default async function initialize() {
 
   if (api_address) {
     $("#api_address").val(api_address)
+    $("#api_confirmation").prop( "checked", true );
   }
 
   if (recipient_address) {
@@ -81,6 +82,27 @@ function initializeEventListeners(ipfs) {
       evt.preventDefault();
     }
   });
+
+  $("#form").on("click", "#api_confirmation", function(evt) {
+    const idFieldContainer = $("#api_id_container")
+    const idField = $("#api_id")
+    const addressFieldContainer = $("#api_address_container")
+
+    const showIdField = !$(this).prop("checked")
+
+    if (showIdField) {
+
+      idFieldContainer.removeClass("d-none")
+      addressFieldContainer.removeClass("col-8")
+      addressFieldContainer.addClass("col-4")
+      idField.prop("required", true)
+
+    } else {
+      idFieldContainer.addClass("d-none")
+      addressFieldContainer.addClass("col-8")
+      addressFieldContainer.removeClass("col-4")
+    }
+  })
 
   $("#form").on("click", "#add-recipient", function(evt) {
     addRecipient()
@@ -169,98 +191,106 @@ function initializeEventListeners(ipfs) {
           campaign.publishingId = apiResponse.publishingId
         }
 
-      } else if (campaign.apiType === "ipfs") {
-          
-        let multiaddress
+      } else if (formValues.api_confirmation) {
         
-        try {
+        if (campaign.apiType === "ipfs") {
+            
+          let multiaddress
           
-          multiaddress = Ipfs.multiaddr(formValues.api_address)
-        
-        } catch {
+          try {
+            
+            multiaddress = Ipfs.multiaddr(formValues.api_address)
           
-          throw "Invalid address"
-        }
-
-        try {
-          
-          await ipfs.swarm.connect(multiaddress.toString())
-        
-        } catch (err) {
-          console.log(err)
-          throw "Could not connect to remote address"
-        }
-      
-        try {
-
-          const peerId = Ipfs.PeerId.createFromB58String(multiaddress.getPeerId())
-          const connectionStream = await ipfs.libp2p.dialProtocol(peerId, "/flipstarter/create")
-          apiResponse = await requestStream(connectionStream, { campaign })
-
-        } catch(err) {
-
-          if (err.name === "Libp2pConnectionError") {
-            throw "Failed to create flipstarter with remote server: " + err.message
+          } catch {
+            
+            throw "Invalid address"
           }
 
-          throw "Failed to create flipstarter with remote server"
-        
-        } finally {
+          try {
+            
+            await ipfs.swarm.connect(multiaddress.toString())
           
-          await ipfs.swarm.disconnect(multiaddress.toString())
-        }
+          } catch (err) {
+            console.log(err)
+            throw "Could not connect to remote address"
+          }
         
-        try {
+          try {
 
-          const { publishingId, addresses, ipfsId } = apiResponse
+            const peerId = Ipfs.PeerId.createFromB58String(multiaddress.getPeerId())
+            const connectionStream = await ipfs.libp2p.dialProtocol(peerId, "/flipstarter/create")
+            apiResponse = await requestStream(connectionStream, { campaign })
+
+          } catch(err) {
+
+            if (err.name === "Libp2pConnectionError") {
+              throw "Failed to create flipstarter with remote server: " + err.message
+            }
+
+            throw "Failed to create flipstarter with remote server"
           
-          campaign.publishingId = publishingId
-          campaign.addresses = addresses
-          campaign.ipfsId = ipfsId
+          } finally {
+            
+            await ipfs.swarm.disconnect(multiaddress.toString())
+          }
+          
+          try {
 
-        } catch {
+            const { publishingId, addresses, ipfsId } = apiResponse
+            
+            campaign.publishingId = publishingId
+            campaign.addresses = addresses
+            campaign.ipfsId = ipfsId
 
-          throw "Invalid response from remote server"
+          } catch {
+
+            throw "Invalid response from remote server"
+          }
+
+        } else {
+          
+          let response
+          const apiRoot = formValues.api_address.replace(/\/$/, "")
+
+          try {
+            
+            response = await pTimeout(await fetch(apiRoot + "/create", {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(campaign)
+            }), 60000)
+
+          } catch (error) {
+            throw "Failed to create flipstarter with remote server"
+          }
+
+          if (response.status === 403) {
+            throw "Unauthorized to access remote server"
+          }
+
+          if (response.status !== 200) {
+              throw "Invalid response from remote server"
+          }
+
+          try {          
+
+              apiResponse = await response.json()
+
+              campaign.id = apiResponse.id
+              campaign.address = apiResponse.address || apiRoot
+          
+          } catch {
+            
+            throw "Invalid response from remote server"
+          }
         }
 
       } else {
-        
-        let response
-        const apiRoot = formValues.api_address.replace(/\/$/, "")
-
-        try {
-          
-          response = await pTimeout(await fetch(apiRoot + "/create", {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(campaign)
-          }), 60000)
-
-        } catch (error) {
-          throw "Failed to create flipstarter with remote server"
-        }
-
-        if (response.status === 403) {
-          throw "Unauthorized to access remote server"
-        }
-
-        if (response.status !== 200) {
-            throw "Invalid response from remote server"
-        }
-
-        try {          
-
-            apiResponse = await response.json()
-
-            campaign.id = apiResponse.id
-            campaign.address = apiResponse.address || apiRoot
-        
-        } catch {
-          
-          throw "Invalid response from remote server"
-        }
+        //TODO God willing: set address with api root and id with api id, God willing.
+        campaign.id = formValues.api_id
+        campaign.address = formValues.api_address.replace(/\/$/, "")
       }
 
       const hash = await createFlipstarterCampaignSite(ipfs, campaign)
