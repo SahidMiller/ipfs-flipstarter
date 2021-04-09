@@ -3,22 +3,7 @@ const TerserPlugin = require('terser-webpack-plugin')
 
 module.exports = (webpack, config, overrideRules = false) => {
 
-	if (process.env.NODE_ENV === "production") {
-
-		commonConfig.mode = "production"
-		delete commonConfig.devtool
-		commonConfig.optimization = {
-			minimize: true,
-			minimizer: [new TerserPlugin({
-				terserOptions: {
-					keep_fnames: true,
-					safari10: true,
-				},
-			})]
-		}
-	}
-
-	return merge({
+	const commonConfig = {
 		mode: "development",
 		watch: false,
 		devtool: 'source-map',
@@ -86,5 +71,22 @@ module.exports = (webpack, config, overrideRules = false) => {
 			  Buffer: ['buffer', 'Buffer'],
 			})
 		],
-	}, config)
+	}
+
+	if (process.env.NODE_ENV === "production") {
+
+		commonConfig.mode = "production"
+		delete commonConfig.devtool
+		commonConfig.optimization = {
+			minimize: true,
+			minimizer: [new TerserPlugin({
+				terserOptions: {
+					keep_fnames: true,
+					safari10: true,
+				},
+			})]
+		}
+	}
+
+	return merge(commonConfig, config)
 }

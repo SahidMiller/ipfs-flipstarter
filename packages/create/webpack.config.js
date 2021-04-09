@@ -3,38 +3,12 @@ const merge = require('../../configs/webpack')
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const RemovePlugin = require('remove-files-webpack-plugin')
-const { WebpackPluginServe: Serve } = require('webpack-plugin-serve')
-const WebpackCdnPlugin = require('webpack-cdn-plugin')
 const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+
 const path = require('path')
 
 const plugins = []
-const serveApp = {}
-
-//Use static files for client page during development (Navigate directly to it, God willing)
-//Create logic overrides these hardcoded cids
-if (process.env.NODE_ENV === "development") {
-
-    serveApp['webpack-plugin-serve/client'] = 'webpack-plugin-serve/client'
-    plugins.push(new Serve({
-        static: "./dist/",
-        port: 55553
-    }))
-
-    plugins.push(new WebpackCdnPlugin({
-        modules: require('./cdn.modules')
-    }))
-} 
-
-
-if (process.env.NODE_ENV === "production") {
-
-    //Add tag to load local bootstrap css in production, God willing.
-    plugins.push(new HtmlWebpackTagsPlugin({
-        tags: ['static/css/bootstrap.css']
-    }))
-}
-
 module.exports = merge(webpack, {
     name: 'create',
     target: 'web',
@@ -49,7 +23,7 @@ module.exports = merge(webpack, {
     plugins: [
         new RemovePlugin({
             before: {
-                include: ['./dist/*'],
+                include: ['./dist'],
                 log: false,
                 logWarning: true,
                 logError: true,
@@ -67,6 +41,14 @@ module.exports = merge(webpack, {
             favicon: "../../public/img/logo.ico",
         }), new webpack.DefinePlugin({
             __FLIPSTARTER_CLIENT_CID__: JSON.stringify(process.env.FLIPSTARTER_CLIENT_CID)
+        }), new CopyWebpackPlugin({
+            patterns: [{ 
+                from: "../client/dist/static/templates/index.html", 
+                to: "static/templates/index.html" 
+            }]
+        }),
+        new HtmlWebpackTagsPlugin({
+            tags: ['static/css/bootstrap.css']
         }),
         ...plugins
     ]
