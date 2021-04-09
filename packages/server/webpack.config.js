@@ -4,36 +4,10 @@ const webpack = require("webpack")
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const RemovePlugin = require('remove-files-webpack-plugin')
 const { WebpackPluginServe: Serve } = require('webpack-plugin-serve')
-const WebpackCdnPlugin = require('webpack-cdn-plugin')
 const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin')
 const path = require('path')
 
 const plugins = []
-const serveApp = {}
-
-//Use static files for client page during development (Navigate directly to it, God willing)
-//Create logic overrides these hardcoded cids
-if (process.env.NODE_ENV === "development") {
-
-    serveApp['webpack-plugin-serve/client'] = 'webpack-plugin-serve/client'
-    plugins.push(new Serve({
-        static: "./dist/",
-        port: 55552
-    }))
-
-    plugins.push(new WebpackCdnPlugin({
-        modules: require('./cdn.modules')
-    }))
-} 
-
-if (process.env.NODE_ENV === "production") {
-
-    //Add tag to load local bootstrap css in production, God willing.
-    plugins.push(new HtmlWebpackTagsPlugin({
-        tags: ['static/css/bootstrap.css']
-    }))
-}
-
 module.exports = merge(webpack, {
     name: "server",
     target: "web",
@@ -80,6 +54,9 @@ module.exports = merge(webpack, {
                 "https://node3.preload.ipfs.io"
             ]),
             __FLIPSTARTER_CREATE_CID__: JSON.stringify(process.env.FLIPSTARTER_CREATE_CID)
+        }),
+        new HtmlWebpackTagsPlugin({
+            tags: ['static/css/bootstrap.css']
         }),
         ...plugins
     ]

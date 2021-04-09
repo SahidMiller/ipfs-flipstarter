@@ -6,8 +6,9 @@
 	"author": "",
 	"license": "ISC",
 	"scripts": {
-    "start": "npx serve ./ -l 55554",
+    "start": "npx serve ./dist -l 55554",
 		"build": "npx webpack",
+		"dev": "npx cross-env FLIPSTARTER_INDEX_HTML='../../tests/assets/index.html' FLIPSTARTER_CAMPAIGN_JSON='../../tests/assets/campaign.json' npm run build",
 		"clean": "rm -rf ./dist"
 	},
 	"ipfs": {

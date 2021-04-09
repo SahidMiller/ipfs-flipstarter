@@ -3,7 +3,6 @@ const merge = require('../../configs/webpack')
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const RemovePlugin = require('remove-files-webpack-plugin')
-const WebpackCdnPlugin = require('webpack-cdn-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const path = require('path')
 
@@ -16,25 +15,17 @@ module.exports = (env = {}) => {
     //Create logic overrides these hardcoded cids
     if (process.env.NODE_ENV === "development") {
         
-        if(process.env.FLIPSTARTER_CAMPAIGN_FILE_PATH || process.env.FLIPSTARTER_INDEX_FILE_PATH) { 
-            const patterns = []
-            
-            if (process.env.FLIPSTARTER_CAMPAIGN_FILE_PATH) {
-                const campaignFilePath = typeof process.env.FLIPSTARTER_CAMPAIGN_FILE_PATH === 'string' ? process.env.FLIPSTARTER_CAMPAIGN_FILE_PATH : "../../tests/assets/campaign.json"
-                patterns.push({ from: campaignFilePath })
-            }
-    
-            if (process.env.FLIPSTARTER_INDEX_FILE_PATH) {
-                const indexFilePath = typeof process.env.FLIPSTARTER_INDEX_FILE_PATH === 'string' ? process.env.FLIPSTARTER_INDEX_FILE_PATH : "../../tests/assets/index.html"
-                patterns.push({ from: indexFilePath })
-            }
-    
-            plugins.push(new CopyWebpackPlugin({ patterns }))
+        const patterns = []
+        
+        if (process.env.FLIPSTARTER_CAMPAIGN_JSON) {
+            patterns.push({ from: process.env.FLIPSTARTER_CAMPAIGN_JSON })
         }
-    
-        plugins.push(new WebpackCdnPlugin({
-            modules: require('./cdn.modules')
-        }))
+
+        if (process.env.FLIPSTARTER_INDEX_HTML) {
+            patterns.push({ from: process.env.FLIPSTARTER_INDEX_HTML })
+        }
+
+        plugins.push(new CopyWebpackPlugin({ patterns }))
     } 
 
     return merge(webpack, {
@@ -53,7 +44,7 @@ module.exports = (env = {}) => {
             new RemovePlugin({
                 before: {
                     include: [
-                        './dist/*'
+                        './dist/'
                     ],
                     log: false,
                     logWarning: true,

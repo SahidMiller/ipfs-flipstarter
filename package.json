@@ -40,6 +40,7 @@
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.1.1",
     "style-loader": "^2.0.0",
+    "terminate": "^2.1.2",
     "terser-webpack-plugin": "^5.1.1",
     "through2": "^4.0.2",
     "url": "^0.11.0",

@@ -3,6 +3,7 @@ const path = require('path');
 const CID = require('cids');
 const chokidar = require('chokidar');
 const fs = require('fs');
+const execa = require('execa');
 
 const BUILT_FLAG = "deployed-on-ipfs"
 
@@ -42,12 +43,12 @@ async function deploy(log, { verbose = true, mode = "production" } = {}) {
   const cids = {}
   await iter.batched(packages)(async (package, log) => {
     const packageJson = require(package.manifestLocation)
-    const dependentEnvVars = getDependentEnv(packages, package, cids)
+    const dependentEnvVars = getDependentEnv(packages, package, cids, mode)
 
     // Pass env variables of dependencies to the dependent package, God willing.
-    let envVarsStr = Object.values(dependentEnvVars).reduce((vars, { envVar, cid }) => {
-        
-        return vars += `${envVar}=${cid} `
+    let envVarsStr = Object.keys(dependentEnvVars).reduce((vars, name) => {
+        const value = dependentEnvVars[name]
+        return vars += `${name}=${value} `
 
     //Trim, yarn has issues
     }, 'npx cross-env ').trim()
@@ -55,10 +56,6 @@ async function deploy(log, { verbose = true, mode = "production" } = {}) {
     //Run build on all the packages not deployed on ipfs yet, God willing.
     if (package.scripts.build && !changes.isBuilt(package)(BUILT_FLAG + ":" + mode)) {
         
-        if (mode === "development") {
-            envVarsStr += " NODE_ENV=development"
-        }
-
         const command = `${envVarsStr} npm run build`
         
         if (verbose) {
@@ -131,9 +128,11 @@ async function watch(log) {
     //Deploy and then start all packages
     const envVars = await deploy(log, { verbose: false, mode: "development" })
     await Promise.all(packages.map(async (package) => {
-        const dependentEnvVars = getDependentEnv(packages, package, envVars)
+        const dependentEnvVars = getDependentEnv(packages, package, envVars, "development")
         log.info("deploy-on-ipfs-watcher", `Starting ${package.name} with:`, dependentEnvVars)
-        await start(package, dependentEnvVars)
+        start(package, dependentEnvVars).catch((err) => {
+            log.error(package.name, err)
+        })
     }))
 
     packages.map(package => log.info("deploy-on-ipfs-watcher", `Watching ${package.name}`))
@@ -144,7 +143,8 @@ async function watch(log) {
           /(^|[\/\\])\../, // ignore dotfiles
           /node_modules/, // ignore node_modules
           /lib|dist/, // ignore build output files
-          /\*___jb_tmp___/ // ignore jetbrains IDE temp files
+          /\*___jb_tmp___/, // ignore jetbrains IDE temp files
+          /(.db|.db-journal)$/, //ignore embedded sql db
         ],
         persistent: true,
         ignoreInitial: true,
@@ -156,10 +156,17 @@ async function watch(log) {
         
         log.info("Rebuilding", package.name);
         
+        // Un mark as built so it is rebuilt in deploy
         changes.unbuild(package, { log })(BUILT_FLAG + ":development")
+        
+        // Stop the service in case it will be updated (can't do much about children)
+        await end(package.name)
+
         const nextEnvVars = (await deploy(log, { verbose: false, mode: "development" })) || ""
         
-        await start(package, getDependentEnv(packages, package, nextEnvVars))
+        start(package, getDependentEnv(packages, package, nextEnvVars, "development")).catch((err) => {
+            log.error(package.name, err)
+        })
 
         log.info("Finished", package.name);
     }
@@ -172,36 +179,48 @@ async function watch(log) {
 };
 
 const running = {}
-const childProcess = require("@lerna/child-process");
+const terminate = require("terminate")
 async function start(package, envVars) {
     
     if (package.scripts.start) {
 
-        if (running[package.name]) {
-            running[package.name].kill("SIGINT", { forceKillAfterTimeout: 2000 })
-        }
-
         // Pass env variables of dependencies to the dependent package, God willing.
-        let envVarsStr = Object.values(envVars).reduce((vars, { envVar, cid }) => {
-            
-            return vars += `${envVar}=${cid} `
+        const envVarsStr = Object.keys(envVars).reduce((vars, name) => {
+            const value = envVars[name]
+            return vars += `${name}=${value} `
 
         //Trim, yarn has issues
         }, 'npx cross-env ').trim()
 
-        running[package.name] = await childProcess.spawn(envVarsStr + " npm run start", [], {
+        //Spawn returns promise since wrapping catch.
+        running[package.name] = spawnProcess(envVarsStr + " npm run start", [], {
             cwd: package.location,
             shell: true,
             env: Object.assign({}, envVars, {
               LERNA_PACKAGE_NAME: package.name,
               LERNA_ROOT_PATH: __dirname,
             }),
-            pkg: package
+            pkg: package,
+            stdio: "inherit"
         })
     }
 }
 
-function getDependentEnv(packages, package, envVars) {
+async function end(packageName) {
+    const runningProcess = running[packageName]
+
+    if (runningProcess) {
+        
+        console.log(packageName, "Shutting down")
+        await new Promise((res) => terminate(runningProcess.pid, "SIGINT", { timeout: 1000 }, res))
+        console.log(packageName, "Shutdown")
+
+    } else {
+        console.log(packageName, "Not running")
+    }
+}
+
+function getDependentEnv(packages, package, envVars, mode = "production") {
     const dependencies = filters.includeFilteredDeps(packages)([package])
 
     // Pass env variables of dependencies to the dependent package, God willing.
@@ -212,9 +231,44 @@ function getDependentEnv(packages, package, envVars) {
         }
 
         return vars
-    }, {})
+    }, { "NODE_ENV": mode })
 }
 
 module.exports["deploy-on-ipfs"] = deploy;
 module.exports["deploy-on-ipfs-watcher"] = watch;
 module.exports["deploy-on-ipfs-cleaner"] = clean;
+
+const children = new Set();
+
+/**
+ * @param {string} command
+ * @param {string[]} args
+ * @param {import("execa").Options} opts
+ */
+ function spawnProcess(command, args, opts) {
+    const child = execa(command, args, opts);
+    const drain = (exitCode, signal) => {
+      children.delete(child);
+  
+      // don't run repeatedly if this is the error event
+      if (signal === undefined) {
+        child.removeListener("exit", drain);
+      }
+  
+      // propagate exit code, if any
+      if (exitCode) {
+        process.exitCode = exitCode;
+      }
+    };
+  
+    child.once("exit", drain);
+    child.once("error", drain);
+  
+    if (opts.pkg) {
+      child.pkg = opts.pkg;
+    }
+  
+    children.add(child);
+  
+    return child;
+  }
