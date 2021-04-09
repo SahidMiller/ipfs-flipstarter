@@ -1,5 +1,5 @@
 {
-  "name": "dweb-flipstarters",
+  "name": "ipfs-flipstarter",
   "version": "0.0.1",
   "description": "Create a flipstarter on the dweb (deployed on IPFS)",
   "author": "TNSahid <sahid.miller@gmail.com>",
