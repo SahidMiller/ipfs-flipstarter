@@ -10,7 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "cids": "^1.1.6",
-    "cross-env": "^7.0.3",
     "html-webpack-plugin": "4",
     "ipfs": "^0.54.4",
     "ipld-in-memory": "^8.0.0",
