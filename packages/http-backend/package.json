@@ -13,16 +13,9 @@
     "start": "npm run verbose",
     "start-no-debug": "node --use-strict server.js"
   },
-  "env.dev": {
-    "FLIPSTARTER_IPFS_GATEWAY_URL": "https://localhost",
-    "FLIPSTARTER_API_AUTH": "pending-contributions",
-    "FLIPSTARTER_TARGET_FEE_RATE": 1
-
-  },
   "author": "Jonathan Silverblood",
   "license": "MIT",
   "dependencies": {
-    "@ipfs-flipstarter/create": "^0.0.1",
     "@toverux/expresse": "^2.4.0",
     "async-mutex": "^0.1.4",
     "better-sqlite3": "^5.4.3",
@@ -38,6 +31,7 @@
     "p-retry": "^4.4.0"
   },
   "devDependencies": {
+    "@ipfs-flipstarter/create": "^0.0.1",
     "eslint": "^6.8.0"
   }
 }

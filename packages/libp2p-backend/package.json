@@ -15,6 +15,7 @@
     "root": "./dist"
   },
   "devDependencies": {
+    "@ipfs-flipstarter/create": "^0.0.1",
     "cross-env": "^7.0.3",
     "html-webpack-plugin": "^5.3.1",
     "html-webpack-tags-plugin": "^3.0.0",
@@ -25,9 +26,7 @@
     "webpack-plugin-serve": "^1.4.1"
   },
   "dependencies": {
-    "@ipfs-flipstarter/create": "^0.0.1",
     "bootstrap": "^4.6.0",
-    "cross-env": "^7.0.3",
     "electrum-cash": "^2.0.7",
     "ipfs": "^0.54.4",
     "jquery": "3.5.1",

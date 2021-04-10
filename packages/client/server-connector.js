@@ -10,7 +10,7 @@ export class HttpServerConnector extends EventEmitter {
 		//Campaign ID not require for standalone
 		const campaignId = campaignIdIndex !== -1 ? 
 			pathparts[campaignIdIndex + 1] : ""
-		const response = await fetch('/api/campaign/' + campaignId)
+		const response = await fetch('/api/campaign/' + campaignId, { mode: "no-cors" })
 		this.campaign = await response.json()
 		this.campaign.contributions = this.campaign.contributions || []
 		this.campaign.commitmentCount = this.campaign.contributions.length
@@ -23,7 +23,7 @@ export class HttpServerConnector extends EventEmitter {
 	async contribute(contribution) {
 	    const submissionOptions = {
 	      method: "POST",
-	      cors: 'no-cors',
+	      mode: 'no-cors',
 	      cache: "no-cache",
 	      credentials: "same-origin",
 	      headers: {
@@ -55,7 +55,7 @@ export class HttpServerConnector extends EventEmitter {
 		//TODO God willing: check that campaign has an API address, or else no events AFAIK.
 		//TODO God willing: similarly for ID to identify ourselves with API, God willing.
 		let eventSourceApi = this.campaign.address.replace(/\/$/, "") + "/events/" + this.campaign.id
-	    const eventSource = new EventSource(eventSourceApi, { cors: 'no-cors' });
+	    const eventSource = new EventSource(eventSourceApi, { mode: 'no-cors' });
 
 		const addContribution = (eventData) => {
 			//Remove duplicates before adding
