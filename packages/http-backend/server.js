@@ -38,9 +38,6 @@ const asyncMutex = require("async-mutex").Mutex;
 
 // Include support for express applications.
 const express = require("express");
-const { sseHub, Hub } = require("@toverux/expresse");
-const eventsMiddleware = require("./routes/eventsMiddleware");
-
 
 // Create an instance of an express application.
 const app = express();
@@ -54,24 +51,10 @@ const urlencodedParser = bodyParser.urlencoded({ extended: false });
 
 // Wrap application setup in order to allow async/await.
 const setup = async function () {
+  app.flipstarterAuthType = process.env.FLIPSTARTER_API_AUTH || "pending-contributions"
   // Enable parsing of both JSON and URL-encoded bodies.
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json());
-
-  // Create a server-sent event stream.
-  const hubs = {}
-  app.sse = {
-    //Handle requests from server to push to clients
-    event: (campaignId, eventName, eventData) => {
-      
-      if (!hubs[campaignId]) {
-        hubs[campaignId] = new Hub();
-      }
-
-      const hub = hubs[campaignId]
-      hub.event(eventName, eventData)
-    }
-  }
 
   // Load the configuration file.
   app.config = require("./config.js");
@@ -83,6 +66,7 @@ const setup = async function () {
   await require("./src/logging.js")(app);
   await require("./src/storage.js")(app);
   await require("./src/network.js")(app);
+  await require("./src/events.js")(app);
 
   module.exports = app;
 
@@ -104,47 +88,7 @@ const setup = async function () {
   app.use("/campaign", require("./routes/campaign.js"));
   app.use("/", require("./routes/home.js"));
   app.use("/create", urlencodedParser, require("./routes/create.js"));
-
-  // Serve static files
-  app.use("/static", express.static("static"));
-
-  // Event handling
-  app.get("/events/:campaign_id/", eventsMiddleware((req) => {
-    //Don't return a hub if the campaign doesn't exist
-    //Fetch the campaign data.
-    const campaignId = req.params["campaign_id"]
-    const campaign = req.app.queries.getCampaign.get({
-      campaign_id: campaignId,
-    });
-
-    if (typeof campaign === "undefined") {
-      res.status(404).end()
-      return
-    }
-
-    if (!hubs[campaignId]) {
-      hubs[campaignId] = new Hub()
-    }
-
-    return hubs[campaignId]
-
-  }), (req, res) => {
-       
-    // Fetch the campaign data.
-    const campaign = req.app.queries.getCampaign.get({
-      campaign_id: req.params["campaign_id"],
-    });
-
-    const campaignContributions = req.app.queries.listContributionsByCampaign.all({ 
-      campaign_id: req.params["campaign_id"]
-    }).filter(c => !c.revocation_id || (campaign.fullfillment_timestamp && c.revocation_timestamp > campaign.fullfillment_timestamp))
-
-    res.sse.event("init", { ...campaign, id: campaign.campaign_id, contributions: campaignContributions })
-  });
-
-  if (process.env.FLIPSTARTER_API_AUTH !== "confirmed-contributions" && process.env.FLIPSTARTER_API_AUTH !== "pending-contributions" && process.env.FLIPSTARTER_API_AUTH !== "no-auth") {
-    throw "export FLIPSTARTER_API_AUTH; valid values: confirmed-contributions, pending-contributions, no-auth. current: " + process.env.FLIPSTARTER_API_AUTH
-  }
+  app.use("/events", require("./routes/events.js"));
 
   // Initialize an empty set of scripthashes that we are subscribed to.
   app.subscribedScriphashes = {};

@@ -38,22 +38,26 @@ const initCapampaign = async function (req, res) {
 
     const freshInstall = app.freshInstall
 
-    if (!freshInstall && process.env.FLIPSTARTER_API_AUTH !== "no-auth") {
+    if (!freshInstall && app.flipstarterAuthType !== "no-auth") {
 
       const recipientAddresses = req.body && req.body.recipients && req.body.recipients.map(r => r.address)
 
       let filterCommitments
       
-      if (process.env.FLIPSTARTER_API_AUTH == "pending-contributions") {
+      if (app.flipstarterAuthType === "pending-contributions") {
         filterCommitments = (c) => c.campaign_id == 1 && (!c.revocation_id || (c.fullfillment_timestamp && c.revocation_timestamp > c.fullfillment_timestamp))
-      } else if (process.env.FLIPSTARTER_API_AUTH === "confirmed-contributions") {
+      } 
+      
+      if (app.flipstarterAuthType === "confirmed-contributions") {
         filterCommitments = (c) => c.campaign_id == 1 && c.fullfillment_timestamp && c.revocation_timestamp > c.fullfillment_timestamp
       }
 
-      if (!recipientAddresses.find(address => {
+      const recipientHasCommitments = recipientAddresses.find(address => {
         const commitmentsByAddress = app.queries.getCommitmentsByAddress.all({ address })
         return commitmentsByAddress.find(filterCommitments)
-      })) {
+      });
+
+      if (!recipientHasCommitments) {
         return res.status(403).json({ error: "No commitments found for recipient address. Access denied."})
       }
     }

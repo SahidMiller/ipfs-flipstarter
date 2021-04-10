@@ -192,7 +192,7 @@ const submitContribution = async function (req, res) {
       }
 
       //Check that recipients haven't opted out
-      if (parseInt(req.params["campaign_id"]) !== 1 && process.env.FLIPSTARTER_API_AUTH !== "no-auth") {
+      if (parseInt(req.params["campaign_id"]) !== 1 && req.app.flipstarterAuthType !== "no-auth") {
         
         req.app.debug.server(
           "Checking recipients contribution not revoked " + req.ip
@@ -200,19 +200,22 @@ const submitContribution = async function (req, res) {
 
         let filterCommitments
       
-        if (process.env.FLIPSTARTER_API_AUTH == "pending-contributions") {
+        if (req.app.flipstarterAuthType == "pending-contributions") {
           filterCommitments = (c) => c.campaign_id == 1 && (!c.revocation_id || (c.fullfillment_timestamp && c.revocation_timestamp > c.fullfillment_timestamp))
-        } else if (process.env.FLIPSTARTER_API_AUTH === "confirmed-contributions") {
+        } 
+        
+        if (req.app.flipstarterAuthType === "confirmed-contributions") {
           filterCommitments = (c) => c.campaign_id == 1 && c.fullfillment_timestamp && c.revocation_timestamp > c.fullfillment_timestamp
         }
+
         //Check that all recipients have commitments to the first campaign that are not revoked, God willing.
-        const isContributionRevoked = !recipients.every(recipient => {
+        const isContributionValid = recipients.every(recipient => {
           const address = recipient.user_address
           const commitmentsByAddress = req.app.queries.getCommitmentsByAddress.all({ address })
           return commitmentsByAddress.find(filterCommitments)
         })
 
-        if (isContributionRevoked) {
+        if (!isContributionValid) {
 
           // Send an BAD REQUEST signal back to the client.
           res.status(400).json({
