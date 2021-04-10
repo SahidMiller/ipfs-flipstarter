@@ -1,14 +1,30 @@
 const { compose } = require('compose-middleware')
-const { sse } = require("@toverux/expresse")
+const { sse, Hub } = require("@toverux/expresse")
 
-module.exports = function(getHub) {
-
+module.exports = function () {
+        
     function middleware(req, res, next) {
-        const hub = getHub(req, res)
+        
+        let campaign  
 
-        if (!hub) {
-            return res.status(404).end()
+        //Fetch the campaign data.
+        const campaignId = req.params["campaign_id"]
+        
+        if (campaignId){
+            
+            campaign = req.app.queries.getCampaign.get({
+                campaign_id: campaignId
+            });
         }
+        
+        //Don't return a hub if the campaign doesn't exist
+        if (typeof campaign === "undefined") {
+            res.status(404).end()
+            return
+        }
+
+        //Create new hub for campaign if first request
+        const hub = req.app.sse.getHub(campaignId)
 
         //=> Register the SSE functions of that client on the hub
         hub.register(res.sse);

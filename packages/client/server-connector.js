@@ -4,22 +4,6 @@ const { calculateTotalContributorMinerFees } = bitcoinCashUtilities
 
 export class HttpServerConnector extends EventEmitter {
 	
-	async getCampaign() {
-		const pathparts = window.location.pathname.split('/')
-		const campaignIdIndex = pathparts.indexOf('campaign')
-		//Campaign ID not require for standalone
-		const campaignId = campaignIdIndex !== -1 ? 
-			pathparts[campaignIdIndex + 1] : ""
-		const response = await fetch('/api/campaign/' + campaignId, { mode: "no-cors" })
-		this.campaign = await response.json()
-		this.campaign.contributions = this.campaign.contributions || []
-		this.campaign.commitmentCount = this.campaign.contributions.length
-		this.campaign.committedSatoshis = getCommittedSatoshis(this.campaign.contributions)
-		this.campaign.totalCommittedMinerFees = calculateTotalContributorMinerFees(this.campaign.commitmentCount)
-
-		return this.campaign
-	}
-
 	async contribute(contribution) {
 	    const submissionOptions = {
 	      method: "POST",

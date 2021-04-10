@@ -176,10 +176,78 @@ module.exports = function (app) {
 
   // Apply the database content.
   const campaign = app.queries.getCampaign.get({ campaign_id: 1 });
-  if (typeof campaign === "undefined") {
-    // No campaign was created
-    // Notify that this is a fresh install and needs a campaign
-    app.freshInstall = true;
+  
+  // Notify that this is a fresh install and needs a campaign
+  app.freshInstall = typeof campaign === "undefined"
+
+  // TODO God willing: initialize with json rather than UI.
+  if (app.freshInstall && process.env.FLIPSTARTER_CAMPAIGN_JSON) {
+
+    try {
+      
+      console.log("Processessing campaign.json", process.env.FLIPSTARTER_CAMPAIGN_JSON)
+
+      const campaignData = JSON.parse(Filesystem.readFileSync(process.env.FLIPSTARTER_CAMPAIGN_JSON))
+      const hasData = !!campaignData && !isNaN(Number(campaignData.starts)) && !isNaN(Number(campaignData.expires))
+      const hasRecipients = hasData && campaignData.recipients && campaignData.recipients.length && campaignData.recipients.every(r => {
+        //TODO God willing: validate addresses and satoshis (more than dust)
+        return r.address && r.satoshis
+      })
+
+      if (!hasData || !hasRecipients) {
+        throw "Invalid campaign data"
+      }
+
+      // Actually initialize the campaign with the POST data
+      const getDescriptionLanguage = (code) => {
+        const description = campaignData.descriptions && campaignData.descriptions[code] || {}
+        return {
+          abstract: description.abstract || "",
+          proposal: description.proposal || ""
+        }
+      }
+
+      const { abstract = "", proposal = "" } = getDescriptionLanguage("en")
+      const { abstractES = "", proposalES = "" } = getDescriptionLanguage("es")
+      const { abstractZH = "", proposalZH = "" } = getDescriptionLanguage("zh")
+      const { abstractJA = "", proposalJA = "" } = getDescriptionLanguage("ja")
+
+      const createCampaignResult = app.queries.addCampaign.run({
+        title: campaignData.title,
+        starts: Number(campaignData.starts),
+        expires: Number(campaignData.expires),
+        abstract,
+        proposal,
+        abstractJA,
+        proposalJA,
+        abstractES,
+        proposalES,
+        abstractZH,
+        proposalZH
+      });
+
+      campaignData.recipients.forEach((recipient, i) => {
+        const addUserResult = app.queries.addUser.run({
+          user_url: recipient.url,
+          user_image: recipient.image,
+          user_alias: recipient.name,
+          user_address: recipient.address,
+          data_signature: null,
+        });
+
+        app.queries.addRecipientToCampaign.run({
+          user_id: addUserResult.lastInsertRowid,
+          campaign_id: createCampaignResult.lastInsertRowid,
+          recipient_satoshis: parseInt(recipient.satoshis)
+        });
+      })
+
+      app.freshInstall = false;
+
+    } catch (err) {
+
+      console.log("Error processessing campaign.json", err)
+    }
   }
 
   //
