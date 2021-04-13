@@ -191,8 +191,9 @@ const submitContribution = async function (req, res) {
         );
       }
 
-      //Check that recipients haven't opted out
-      if (parseInt(req.params["campaign_id"]) !== 1 && req.app.flipstarterAuthType !== "no-auth") {
+      //Check that recipients of this contribution still have valid contributions to main campaigns
+      // IF this contribution isn't to a valid auth campaign (might want preauthorize certain recipients or campaigns, God willing)
+      if (req.app.config.auth.validAuthCampaigns.indexOf(parseInt(req.params["campaign_id"])) === -1 && req.app.config.auth.type !== "no-auth") {
         
         req.app.debug.server(
           "Checking recipients contribution not revoked " + req.ip
@@ -200,12 +201,12 @@ const submitContribution = async function (req, res) {
 
         let filterCommitments
       
-        if (req.app.flipstarterAuthType == "pending-contributions") {
-          filterCommitments = (c) => c.campaign_id == 1 && (!c.revocation_id || (c.fullfillment_timestamp && c.revocation_timestamp > c.fullfillment_timestamp))
+        if (req.app.config.auth.type == "pending-contributions") {
+          filterCommitments = (c) => req.app.config.auth.validAuthCampaigns.indexOf(c.campaign_id) !== -1 && (!c.revocation_id || (c.fullfillment_timestamp && c.revocation_timestamp > c.fullfillment_timestamp))
         } 
         
-        if (req.app.flipstarterAuthType === "confirmed-contributions") {
-          filterCommitments = (c) => c.campaign_id == 1 && c.fullfillment_timestamp && c.revocation_timestamp > c.fullfillment_timestamp
+        if (req.app.config.auth.type === "confirmed-contributions") {
+          filterCommitments = (c) => req.app.config.auth.validAuthCampaigns.indexOf(c.campaign_id) !== -1 && c.fullfillment_timestamp && c.revocation_timestamp > c.fullfillment_timestamp
         }
 
         //Check that all recipients have commitments to the first campaign that are not revoked, God willing.
@@ -394,7 +395,7 @@ const submitContribution = async function (req, res) {
           unlock_script: Buffer.from(currentInput.unlocking_script, "hex"),
           sequence_number: 0xffffffff,
           satoshis: inputUTXO.value,
-          address: bitbox.Address.fromOutputScript(inputLockScript, process.env.NODE_ENV === "development" ? "testnet" : "mainnet"),
+          address: bitbox.Address.fromOutputScript(inputLockScript, req.app.config.bch.network),
         });
 
         // If we have not yet subscribed to this script hash..
@@ -491,7 +492,7 @@ const submitContribution = async function (req, res) {
       }).commitment_count;
 
       // attempt to run the contract as long as the recipient miner fees of 1byte per satoshi.
-      if (currentCommittedSatoshis >= contract.totalContractOutputValue + calculateMinerFee(recipients.length, currentContributionCount, process.env.FLIPSTARTER_TARGET_FEE_RATE || 1)) {
+      if (currentCommittedSatoshis >= contract.totalContractOutputValue + calculateMinerFee(recipients.length, currentContributionCount, req.app.config.bch.targetFeeRate)) {
         
         // Get an updates list of contributions.
         const campaignContributions = req.app.queries.listContributionsByCampaign.all({ 

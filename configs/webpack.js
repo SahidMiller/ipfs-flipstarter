@@ -80,6 +80,7 @@ module.exports = (webpack, config, overrideRules = false) => {
 		commonConfig.optimization = {
 			minimize: true,
 			minimizer: [new TerserPlugin({
+				exclude: /\/*.html/,
 				terserOptions: {
 					keep_fnames: true,
 					safari10: true,

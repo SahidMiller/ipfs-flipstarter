@@ -1,6 +1,9 @@
 import CID from 'cids'
 import { cat, uploadFile } from '../utils/ipfs/ipfs'
 import mustache from 'mustache'
+// https://stackoverflow.com/questions/44029866/import-javascript-files-as-a-string
+import clientIndexPageTempl from '!raw-loader!./node_modules/@ipfs-flipstarter/client/dist/static/templates/index.html'
+import clientDagNode from 'dag-loader!./node_modules/@ipfs-flipstarter/client/client-dag.config.js'
 
 export default async function createFlipstarterCampaignSite(ipfs, initialCampaign) {
   const [indexPageLink, campaignLink] = await Promise.all([
@@ -13,14 +16,12 @@ export default async function createFlipstarterCampaignSite(ipfs, initialCampaig
 
 async function uploadSite(ipfs, indexLink, campaignLink) {
 
-  const rootDAG = (await ipfs.dag.get(__FLIPSTARTER_CLIENT_CID__)).value
+  clientDagNode.rmLink("campaign.json") //If campaign.json is included in hash due to testing.
+  clientDagNode.addLink(campaignLink)
+  clientDagNode.rmLink("index.html")
+  clientDagNode.addLink(indexLink)
 
-  rootDAG.rmLink("campaign.json") //If campaign.json is included in hash due to testing
-  rootDAG.addLink(campaignLink)
-  rootDAG.rmLink("index.html")
-  rootDAG.addLink(indexLink)
-
-  const info = await ipfs.dag.put(rootDAG, { format: 'dag-pb', hashAlg: 'sha2-256' })
+  const info = await ipfs.dag.put(clientDagNode, { format: 'dag-pb', hashAlg: 'sha2-256' })
   const cid = new CID(info.multihash).toBaseEncodedString()
   await ipfs.dag.get(cid)
   await ipfs.dag.get(campaignLink.Hash)
@@ -29,9 +30,7 @@ async function uploadSite(ipfs, indexLink, campaignLink) {
 
 async function uploadIndexPage(ipfs, campaign) {
 
-  const indexTemplate = await (await fetch('static/templates/index.html')).text()
-
-  const renderedIndexPage = mustache.render(indexTemplate, { 
+  const renderedIndexPage = mustache.render(clientIndexPageTempl, { 
     title: campaign.title,
     description: campaign.descriptions.en.abstract,
     url: campaign.recipients[0].url,

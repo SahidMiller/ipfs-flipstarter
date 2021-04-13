@@ -4,7 +4,6 @@ const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const RemovePlugin = require('remove-files-webpack-plugin')
 const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin')
-const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 const path = require('path')
 
@@ -39,15 +38,7 @@ module.exports = merge(webpack, {
             publicPath: './',
             inject: 'body',
             favicon: "../../public/img/logo.ico",
-        }), new webpack.DefinePlugin({
-            __FLIPSTARTER_CLIENT_CID__: JSON.stringify(process.env.FLIPSTARTER_CLIENT_CID)
-        }), new CopyWebpackPlugin({
-            patterns: [{ 
-                from: "../client/dist/static/templates/index.html", 
-                to: "static/templates/index.html" 
-            }]
-        }),
-        new HtmlWebpackTagsPlugin({
+        }), new HtmlWebpackTagsPlugin({
             tags: ['static/css/bootstrap.css']
         }),
         ...plugins

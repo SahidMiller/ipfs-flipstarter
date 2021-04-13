@@ -51,7 +51,6 @@ const urlencodedParser = bodyParser.urlencoded({ extended: false });
 
 // Wrap application setup in order to allow async/await.
 const setup = async function () {
-  app.flipstarterAuthType = process.env.FLIPSTARTER_API_AUTH || "pending-contributions"
   // Enable parsing of both JSON and URL-encoded bodies.
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json());
@@ -64,6 +63,10 @@ const setup = async function () {
 
   // Load application modules.
   await require("./src/logging.js")(app);
+
+  // Log config immediately
+  app.debug.object(app.config)
+
   await require("./src/storage.js")(app);
   await require("./src/network.js")(app);
   await require("./src/events.js")(app);
@@ -85,7 +88,6 @@ const setup = async function () {
 
   // Create routes from separate files.
   app.use("/submit", require("./routes/submit.js"));
-  app.use("/campaign", require("./routes/campaign.js"));
   app.use("/", require("./routes/home.js"));
   app.use("/create", urlencodedParser, require("./routes/create.js"));
   app.use("/events", require("./routes/events.js"));

@@ -18,14 +18,16 @@ module.exports = (env = {}) => {
         const patterns = []
         
         if (process.env.FLIPSTARTER_CAMPAIGN_JSON) {
-            patterns.push({ from: process.env.FLIPSTARTER_CAMPAIGN_JSON })
+            patterns.push({ from: process.env.FLIPSTARTER_CAMPAIGN_JSON, to: "" })
         }
 
         if (process.env.FLIPSTARTER_INDEX_HTML) {
-            patterns.push({ from: process.env.FLIPSTARTER_INDEX_HTML })
+            patterns.push({ from: process.env.FLIPSTARTER_INDEX_HTML, to: "" })
         }
 
-        plugins.push(new CopyWebpackPlugin({ patterns }))
+        if (patterns.length) {
+            plugins.push(new CopyWebpackPlugin({ patterns }))
+        }
     } 
 
     return merge(webpack, {

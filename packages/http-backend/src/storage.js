@@ -7,6 +7,7 @@ module.exports = function (app) {
 
   // Enable support for filesystem operations.
   const Filesystem = require("fs");
+  const path = require("path")
 
   // Open the database in read-write mode.
   app.sql = new Database(app.config.server.database, {
@@ -34,12 +35,14 @@ module.exports = function (app) {
 
   //
   app.debug.struct("Configured database connection.");
+  
+  const basePath = path.join(__dirname, "../")
 
   // Initialize the database
   {
     // Load the database schema.
     const databaseSchema = Filesystem.readFileSync(
-      "sql/database_schema.sql",
+      path.join(basePath, "sql/database_schema.sql"),
       "utf8"
     ).trim();
 
@@ -51,124 +54,124 @@ module.exports = function (app) {
   app.queries = {
     // User management.
     addUser: app.sql.prepare(
-      Filesystem.readFileSync("sql/add_user.sql", "utf8").trim()
+      Filesystem.readFileSync(path.join(basePath, "sql/add_user.sql"), "utf8").trim()
     ),
     getUser: app.sql.prepare(
-      Filesystem.readFileSync("sql/get_user.sql", "utf8").trim()
+      Filesystem.readFileSync(path.join(basePath, "sql/get_user.sql"), "utf8").trim()
     ),
     getUserByAddress: app.sql.prepare(
-      Filesystem.readFileSync("sql/get_user_by_address.sql", "utf8").trim()
+      Filesystem.readFileSync(path.join(basePath, "sql/get_user_by_address.sql"), "utf8").trim()
     ),
     listCampaignsByUser: app.sql.prepare(
-      Filesystem.readFileSync("sql/list_campaigns_by_user.sql", "utf8").trim()
+      Filesystem.readFileSync(path.join(basePath, "sql/list_campaigns_by_user.sql"), "utf8").trim()
     ),
     listContributionsByUser: app.sql.prepare(
       Filesystem.readFileSync(
-        "sql/list_contributions_by_user.sql",
+        path.join(basePath, "sql/list_contributions_by_user.sql"),
         "utf8"
       ).trim()
     ),
     listRecipientsByUser: app.sql.prepare(
-      Filesystem.readFileSync("sql/list_recipients_by_user.sql", "utf8").trim()
+      Filesystem.readFileSync(path.join(basePath, "sql/list_recipients_by_user.sql"), "utf8").trim()
     ),
 
     // Commitment management.
     addCommitment: app.sql.prepare(
-      Filesystem.readFileSync("sql/add_commitment.sql", "utf8").trim()
+      Filesystem.readFileSync(path.join(basePath, "sql/add_commitment.sql"), "utf8").trim()
     ),
     getCommitment: app.sql.prepare(
-      Filesystem.readFileSync("sql/get_commitment.sql", "utf8").trim()
+      Filesystem.readFileSync(path.join(basePath, "sql/get_commitment.sql"), "utf8").trim()
     ),
     getCommitmentsByAddress: app.sql.prepare(
-      Filesystem.readFileSync("sql/get_commitments_by_address.sql", "utf8").trim()
+      Filesystem.readFileSync(path.join(basePath, "sql/get_commitments_by_address.sql"), "utf8").trim()
     ),
     getCommitmentByHashAndIndex: app.sql.prepare(
       Filesystem.readFileSync(
-        "sql/get_commitment_by_hash_and_index.sql",
+        path.join(basePath, "sql/get_commitment_by_hash_and_index.sql"),
         "utf8"
       ).trim()
     ),
     getContribution: app.sql.prepare(
-      Filesystem.readFileSync("sql/get_contribution.sql", "utf8").trim()
+      Filesystem.readFileSync(path.join(basePath, "sql/get_contribution.sql"), "utf8").trim()
     ),
     countCommitmentsByCampaign: app.sql.prepare(
       Filesystem.readFileSync(
-        "sql/count_commitments_by_campaign.sql",
+        path.join(basePath, "sql/count_commitments_by_campaign.sql"),
         "utf8"
       ).trim()
     ),
     //
     getContributionByCommitment: app.sql.prepare(
       Filesystem.readFileSync(
-        "sql/get_contribution_by_commitment.sql",
+        path.join(basePath, "sql/get_contribution_by_commitment.sql"),
         "utf8"
       ).trim()
     ),
     listAllContributions: app.sql.prepare(
-      Filesystem.readFileSync("sql/list_all_contributions.sql", "utf8").trim()
+      Filesystem.readFileSync(path.join(basePath, "sql/list_all_contributions.sql"), "utf8").trim()
     ),
 
     // Campaign management.
     getCampaign: app.sql.prepare(
-      Filesystem.readFileSync("sql/get_campaign.sql", "utf8").trim()
+      Filesystem.readFileSync(path.join(basePath, "sql/get_campaign.sql"), "utf8").trim()
     ),
     addCampaign: app.sql.prepare(
-      Filesystem.readFileSync("sql/add_campaign.sql", "utf8").trim()
+      Filesystem.readFileSync(path.join(basePath, "sql/add_campaign.sql"), "utf8").trim()
     ),
     getCampaignRequestedSatoshis: app.sql.prepare(
       Filesystem.readFileSync(
-        "sql/get_campaign_requested_satoshis.sql",
+        path.join(basePath, "sql/get_campaign_requested_satoshis.sql"),
         "utf8"
       ).trim()
     ),
     getCampaignCommittedSatoshis: app.sql.prepare(
       Filesystem.readFileSync(
-        "sql/get_campaign_committed_satoshis.sql",
+        path.join(basePath, "sql/get_campaign_committed_satoshis.sql"),
         "utf8"
       ).trim()
     ),
     listCampaigns: app.sql.prepare(
-      Filesystem.readFileSync("sql/list_campaigns.sql", "utf8").trim()
+      Filesystem.readFileSync(path.join(basePath, "sql/list_campaigns.sql"), "utf8").trim()
     ),
     listRecipientsByCampaign: app.sql.prepare(
       Filesystem.readFileSync(
-        "sql/list_recipients_by_campaign.sql",
+        path.join(basePath, "sql/list_recipients_by_campaign.sql"),
         "utf8"
       ).trim()
     ),
     listContributionsByCampaign: app.sql.prepare(
       Filesystem.readFileSync(
-        "sql/list_contributions_by_campaign.sql",
+        path.join(basePath, "sql/list_contributions_by_campaign.sql"),
         "utf8"
       ).trim()
     ),
     addRecipientToCampaign: app.sql.prepare(
       Filesystem.readFileSync(
-        "sql/add_recipient_to_campaign.sql",
+        path.join(basePath, "sql/add_recipient_to_campaign.sql"),
         "utf8"
       ).trim()
     ),
     addContributionToCampaign: app.sql.prepare(
       Filesystem.readFileSync(
-        "sql/add_contribution_to_campaign.sql",
+        path.join(basePath, "sql/add_contribution_to_campaign.sql"),
         "utf8"
       ).trim()
     ),
     addContributionRevocation: app.sql.prepare(
       Filesystem.readFileSync(
-        "sql/add_contribution_revocation.sql",
+        path.join(basePath, "sql/add_contribution_revocation.sql"),
         "utf8"
       ).trim()
     ),
     addCampaignFullfillment: app.sql.prepare(
       Filesystem.readFileSync(
-        "sql/add_campaign_fullfillment.sql",
+        path.join(basePath, "sql/add_campaign_fullfillment.sql"),
         "utf8"
       ).trim()
     ),
     linkCommitmentToContribution: app.sql.prepare(
       Filesystem.readFileSync(
-        "sql/link_commitment_to_contribution.sql",
+        path.join(basePath, "sql/link_commitment_to_contribution.sql"),
         "utf8"
       ).trim()
     ),
@@ -181,13 +184,13 @@ module.exports = function (app) {
   app.freshInstall = typeof campaign === "undefined"
 
   // TODO God willing: initialize with json rather than UI.
-  if (app.freshInstall && process.env.FLIPSTARTER_CAMPAIGN_JSON) {
+  if (app.freshInstall && app.config.initialCampaignJsonPath) {
 
     try {
       
-      console.log("Processessing campaign.json", process.env.FLIPSTARTER_CAMPAIGN_JSON)
+      console.log("Processessing campaign.json", app.config.initialCampaignJsonPath)
 
-      const campaignData = JSON.parse(Filesystem.readFileSync(process.env.FLIPSTARTER_CAMPAIGN_JSON))
+      const campaignData = JSON.parse(Filesystem.readFileSync(app.config.initialCampaignJsonPath))
       const hasData = !!campaignData && !isNaN(Number(campaignData.starts)) && !isNaN(Number(campaignData.expires))
       const hasRecipients = hasData && campaignData.recipients && campaignData.recipients.length && campaignData.recipients.every(r => {
         //TODO God willing: validate addresses and satoshis (more than dust)

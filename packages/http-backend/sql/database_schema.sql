@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS campaigns
 	abstractES TEXT NOT NULL DEFAULT '',
 	proposalJA TEXT NOT NULL DEFAULT '',
 	abstractJA TEXT NOT NULL DEFAULT '',
+	reward_url TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY (campaign_id)
 );
 

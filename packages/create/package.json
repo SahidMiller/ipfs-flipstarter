@@ -16,8 +16,8 @@
   },
   "license": "ISC",
   "devDependencies": {
-    "@ipfs-flipstarter/client": "^0.0.1",
     "cross-env": "^7.0.3",
+    "dag-loader": "file:../dag-loader",
     "html-webpack-plugin": "^5.3.1",
     "html-webpack-tags-plugin": "^3.0.0",
     "remove-files-webpack-plugin": "^1.4.4",
@@ -28,8 +28,10 @@
     "webpack-plugin-serve": "^1.4.1"
   },
   "dependencies": {
+    "@ipfs-flipstarter/client": "file:../client",
     "bchaddrjs": "^0.5.2",
     "bootstrap": "^4.6.0",
+    "dag-loader": "^0.0.1",
     "ipfs": "^0.54.4",
     "jquery": "3.5.1",
     "libp2p-stream-helper": "https://github.com/sahidmiller/libp2p-stream-helper.git",
