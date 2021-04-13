@@ -98,7 +98,6 @@ const campaignInformation = async function (req, res) {
         name: recipient.user_alias,
         url: recipient.user_url,
         image: recipient.user_image,
-        alias: recipient.user_alias,
         address: recipient.user_address,
         satoshis: recipient.recipient_satoshis,
       }

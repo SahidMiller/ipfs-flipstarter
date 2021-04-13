@@ -25,11 +25,6 @@ module.exports = class bitcoinCashUtilities {
   static get COMMITMENTS_PER_TRANSACTION() {
     return 650
   }
-
-  // Aim for two satoshis per byte to get a clear margin for error and priority on fullfillment.
-  static get TARGET_FEE_RATE() {
-    return 2;
-  }
   
   // Define byte weights for different transaction parts.
   static get AVERAGE_BYTE_PER_CONTRIBUTION() {
@@ -43,23 +38,31 @@ module.exports = class bitcoinCashUtilities {
   static get AVERAGE_BYTE_PER_RECIPIENT() {
     return 69;
   }
-  
-  static get CONTRIBUTOR_MINER_FEE() {
 
-    // Calculate the miner fee necessary to cover a fullfillment transaction for each contribution contribution.
-    return bitcoinCashUtilities.calculateTotalContributorMinerFees(1);  
+  static calculateTotalRecipientMinerFees(RECIPIENT_COUNT, TARGET_FEE_RATE = 1) {
+    return (
+      (bitcoinCashUtilities.AVERAGE_BYTE_PER_RECIPIENT * RECIPIENT_COUNT) + 
+      (bitcoinCashUtilities.TRANSACTION_METADATA_BYTES)
+    ) * TARGET_FEE_RATE;
   }
 
-  static calculateTotalContributorMinerFees(CONTRIBUTION_COUNT) {
+  static calculateTotalContributorMinerFees(CONTRIBUTION_COUNT, TARGET_FEE_RATE = 1) {
     // Calculate the miner fee necessary to cover a fullfillment transaction for each contribution contribution.
-    return (bitcoinCashUtilities.AVERAGE_BYTE_PER_CONTRIBUTION * (CONTRIBUTION_COUNT)) * bitcoinCashUtilities.TARGET_FEE_RATE;
+    return (bitcoinCashUtilities.AVERAGE_BYTE_PER_CONTRIBUTION * (CONTRIBUTION_COUNT)) * TARGET_FEE_RATE;
   };
-  
-  static calculateCampaignerMinerFee(RECIPIENT_COUNT) {
-    // Calculate the miner fee necessary to cover a fullfillment transaction for each recipient.
-    return ( 
-      bitcoinCashUtilities.TRANSACTION_METADATA_BYTES + 
-      bitcoinCashUtilities.AVERAGE_BYTE_PER_RECIPIENT * RECIPIENT_COUNT
-    ) * bitcoinCashUtilities.TARGET_FEE_RATE;
+
+  static calculateActualFeeRate(recipientCount, requestedSatoshis, contributionCount, committedSatoshis) {
+    // calculate real fee rate by:
+    // 1. getting total bytes (fee rate of 1 sat per byte)
+    // 2. getting actual fee in satoshis (total committed minus what was requested)
+    // 3. divide actual fee sats by bytes to get sat per byte
+    if (committedSatoshis < requestedSatoshis || recipientCount === 0 || contributionCount === 0) {
+      return
+    }
+
+    return (committedSatoshis - requestedSatoshis) / (
+      this.calculateTotalRecipientMinerFees(recipientCount, 1) +
+      this.calculateTotalContributorMinerFees(contributionCount, 1)
+    )
   }
 }

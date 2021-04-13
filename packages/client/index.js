@@ -23,16 +23,15 @@ const DOMPurify = createDOMPurify(window)
 import confetti from "canvas-confetti"
 import { HttpServerConnector } from './server-connector.js'
 import { Libp2pServerConnector } from './server-ipfs-connector.js'
-import { bitcoinCashUtilities } from '@ipfs-flipstarter/utils'
 import { BITBOX } from 'bitbox-sdk'
 import { Buffer } from 'buffer'
 
 import Signup from '@dweb-cash/provider'
+import { SATS_PER_BCH, calculateTotalContributorMinerFees, calculateTotalRecipientMinerFees  } from "@ipfs-flipstarter/utils/bitcoinCashUtilities"
 
 const signup = new Signup.cash({});
 const bitbox = new BITBOX()
-
-const { SATS_PER_BCH, CONTRIBUTOR_MINER_FEE, calculateCampaignerMinerFee } = bitcoinCashUtilities
+const TARGET_FEE_RATE = 1.5
 
 const interfaceResponses = {
   en: require('../../public/translations/en/interface.json'),
@@ -211,9 +210,9 @@ class flipstarter {
         "recipientList"
       ).innerHTML += `<li class='col s6 m6 l12'>
 				<a href='${recipient.url}' target="_blank">
-					<img src='${recipient.image}' alt='${recipient.alias}' />
+					<img src='${recipient.image}' alt='${recipient.name}' />
 					<span>
-						<b>${recipient.alias}</b>
+						<b>${recipient.name}</b>
 						<i title="${recipient.satoshis}">${recipientAmount} BCH</i>
 					</span>
 				</a>
@@ -433,7 +432,17 @@ class flipstarter {
       const requestedSatoshis = (this.campaign.requestedSatoshis || 0) + (this.campaign.campaignMinerFee || 0)
 
       //Display minus fees to reflect satoshis to campaign recipients rather than full contract (until completed)
-      const contributorFees = !this.campaign.fullfilled ? CONTRIBUTOR_MINER_FEE : 0
+      const feeRate = !this.campaign.fullfilled ? 
+        TARGET_FEE_RATE : 
+        calculateActualFeeRate(
+          this.campaign.recipients.length,
+          this.campaign.requestedSatoshis,
+          // After fullfilled, we want only true commitments (not over commitments), God willing.
+          this.campaign.commitmentCount,
+          this.campaign.committedSatoshis
+        )
+
+      const contributorFees = calculateTotalContributorMinerFees(1, feeRate)
 
       this.campaign.contributions
         .slice()
@@ -683,7 +692,8 @@ class flipstarter {
   }
 
   async updateCampaignProgressCounter() {
-    const requestedSatoshis = this.campaign.requestedSatoshis
+    //Show the fees needed per recipient byte (1 byte per sat fee rate)
+    const requestedSatoshis = this.campaign.requestedSatoshis + calculateTotalRecipientMinerFees(this.campaign.recipients.length)
     const requestedSatoshisText = (requestedSatoshis / SATS_PER_BCH).toFixed(8)
     document.getElementById("campaignRequestAmount").textContent = DOMPurify.sanitize(requestedSatoshisText);
   }
@@ -805,7 +815,7 @@ class flipstarter {
     } else {
 
       //Add per contribution fee to donation amount, God willing
-      donationAmount = CONTRIBUTOR_MINER_FEE + Math.ceil((requestedSatoshis - committedSatoshis) * percentage);
+      donationAmount = calculateTotalContributorMinerFees(1, TARGET_FEE_RATE) + Math.ceil((requestedSatoshis - committedSatoshis) * percentage);
     }
 
     if (Number(event.target.value) >= 100) {
@@ -858,7 +868,7 @@ class flipstarter {
           expires: this.campaign.expires,
           alias: document.getElementById("contributionName").value,
           comment: document.getElementById("contributionComment").value,
-          includingFee: CONTRIBUTOR_MINER_FEE
+          includingFee: calculateTotalContributorMinerFees(1, TARGET_FEE_RATE)
         }, recipients);
 
         document.getElementById("commitment").value = payload
