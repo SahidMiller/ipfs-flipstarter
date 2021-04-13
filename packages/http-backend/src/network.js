@@ -8,13 +8,11 @@ module.exports = async function (app) {
   // Initialize an electrum cluster with default settings.
   app.electrum = new ElectrumCluster("Flipstarter Backend", "1.4.1");
 
-  const isProduction = process.env.NODE_ENV !== "development"
-
   //
-  app.debug.struct("Adding " + (isProduction ? "production" : "development") + " servers to cluster.");
+  app.debug.struct("Adding " + app.config.server.env + " servers to cluster.");
 
   // Add some servers to the cluster.
-  if (!isProduction) {
+  if (app.config.server.env === "development") {
 
     app.electrum.addServer("testnet.bitcoincash.network", 60004, ElectrumTransport.WSS.Scheme);
     app.electrum.addServer('blackie.c3-soft.com', 60004, ElectrumTransport.WSS.Scheme)

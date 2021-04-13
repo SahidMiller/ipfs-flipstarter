@@ -2,6 +2,9 @@
   "name": "@ipfs-flipstarter/http-backend",
   "version": "0.0.1",
   "description": "",
+  "bin": {
+    "flipstarter-http-server": "cli.js"
+  },
   "main": "server.js",
   "scripts": {
     "lint": "eslint .",
@@ -16,6 +19,7 @@
   "author": "Jonathan Silverblood",
   "license": "MIT",
   "dependencies": {
+    "@ipfs-flipstarter/client": "file:..\\client",
     "@toverux/expresse": "^2.4.0",
     "async-mutex": "^0.1.4",
     "better-sqlite3": "^5.4.3",
@@ -28,10 +32,11 @@
     "express-sse": "^0.5.1",
     "materialize-css": "^1.0.0",
     "moment": "^2.27.0",
+    "mustache": "^4.2.0",
     "p-retry": "^4.4.0"
   },
   "devDependencies": {
-    "@ipfs-flipstarter/create": "^0.0.1",
+    "@ipfs-flipstarter/create": "file:..\\create",
     "eslint": "^6.8.0"
   }
 }

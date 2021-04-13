@@ -151,7 +151,6 @@ function initializeEventListeners(ipfs) {
           name: formValues.recipient_name[i],
           url: formValues.project_url[i],
           image: formValues.image_url[i],
-          alias: formValues.recipient_name[i],
           address: formValues.bch_address[i],
           signature: null,
           satoshis: Number(formValues.amount[i]) * SATS_PER_BCH // to satoshis

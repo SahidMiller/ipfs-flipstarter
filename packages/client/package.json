@@ -5,8 +5,11 @@
 	"main": "index.js",
 	"author": "",
 	"license": "ISC",
+	"files": [
+		"dist"
+	],
 	"scripts": {
-    "start": "npx serve ./dist -l 55554",
+    	"start": "npx serve ./dist -l 55554",
 		"build": "npx webpack",
 		"dev": "npx cross-env FLIPSTARTER_INDEX_HTML='../../tests/assets/index.html' FLIPSTARTER_CAMPAIGN_JSON='../../tests/assets/campaign.json' npm run build",
 		"clean": "rm -rf ./dist"
@@ -27,7 +30,7 @@
 		"webpack-plugin-serve": "^1.4.1"
 	},
 	"dependencies": {
-    	"@dweb-cash/provider": "^1.0.1",
+    	"@dweb-cash/provider": "file:../cash-provider",
 		"bitbox-sdk": "^8.11.2",
 		"canvas-confetti": "^1.4.0",
 		"dompurify": "^2.2.7",

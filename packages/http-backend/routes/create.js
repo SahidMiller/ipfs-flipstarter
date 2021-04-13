@@ -13,19 +13,13 @@ const create = async function (req, res) {
   req.app.debug.server("Create page requested from " + req.ip);
 
   //Redirect to IPFS create page with prefilled information on our server address
-  let apiUrl = (process.env.FLIPSTARTER_API_URL || req.get('host')).replace(/\/$/, "")
+  let apiUrl = (req.app.config.server.url || req.get('host')).replace(/\/$/, "")
 
   if (!apiUrl.match(/^(http:\/\/|https:\/\/|\/\/)/)) {
     apiUrl = "//" + apiUrl
   }
-  
-  let gatewayUrl = (process.env.FLIPSTARTER_IPFS_GATEWAY_URL || "https://ipfs.io").replace(/\/$/, "")
 
-  if (!gatewayUrl.match(/^(http:\/\/|https:\/\/|\/\/)/)) {
-    gatewayUrl = "//" + gatewayUrl
-  }
-
-  const redirectUrl = `${gatewayUrl}/ipfs/${process.env.FLIPSTARTER_CREATE_CID}?api_address=${apiUrl}&api_type=https` 
+  const redirectUrl = `${req.app.config.ipfs.redirectUrlBase}?api_address=${apiUrl}&api_type=https` 
   res.redirect(redirectUrl);
 
   // Notify the server admin that a campaign has been requested.
@@ -38,18 +32,20 @@ const initCapampaign = async function (req, res) {
 
     const freshInstall = app.freshInstall
 
-    if (!freshInstall && app.flipstarterAuthType !== "no-auth") {
+    // Check that the creator of campaign has made a donation to one of the valid auth campaigns 
+    // (may want to preauthorize them by adding the recipient to a list but then need controls of how many can be made and to make sure not to reject contributions to them)
+    if (!freshInstall && app.config.auth.type !== "no-auth") {
 
       const recipientAddresses = req.body && req.body.recipients && req.body.recipients.map(r => r.address)
 
       let filterCommitments
       
-      if (app.flipstarterAuthType === "pending-contributions") {
-        filterCommitments = (c) => c.campaign_id == 1 && (!c.revocation_id || (c.fullfillment_timestamp && c.revocation_timestamp > c.fullfillment_timestamp))
+      if (app.config.auth.type === "pending-contributions") {
+        filterCommitments = (c) => req.app.config.auth.validAuthCampaigns.indexOf(c.campaign_id) !== -1 && (!c.revocation_id || (c.fullfillment_timestamp && c.revocation_timestamp > c.fullfillment_timestamp))
       } 
       
-      if (app.flipstarterAuthType === "confirmed-contributions") {
-        filterCommitments = (c) => c.campaign_id == 1 && c.fullfillment_timestamp && c.revocation_timestamp > c.fullfillment_timestamp
+      if (app.config.auth.type === "confirmed-contributions") {
+        filterCommitments = (c) => req.app.config.auth.validAuthCampaigns.indexOf(c.campaign_id) !== -1 && c.fullfillment_timestamp && c.revocation_timestamp > c.fullfillment_timestamp
       }
 
       const recipientHasCommitments = recipientAddresses.find(address => {
@@ -124,7 +120,7 @@ const initCapampaign = async function (req, res) {
     app.freshInstall = false;
 
     //Return our server address for use in users client side flipstarter application
-    let address = (process.env.FLIPSTARTER_API_URL || req.get('host')).replace(/\/$/, "")
+    let address = (app.config.server.url || req.get('host')).replace(/\/$/, "")
 
     if (!address.match(/^(http:\/\/|https:\/\/|\/\/)/)) {
       address = "//" + address
