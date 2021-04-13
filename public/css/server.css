@@ -212,3 +212,7 @@ a:hover, .btn-link:hover {
     background: #2152A3;
   }
 }
+
+.clearfix {
+  clear: both;
+}

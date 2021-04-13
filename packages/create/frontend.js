@@ -9,10 +9,10 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'popper.js'
 import bchaddr from 'bchaddrjs'
 import Ipfs from 'ipfs'
+//import ipfsClient from 'ipfs-http-client'
 import { requestStream } from 'libp2p-stream-helper'
 import createFlipstarterCampaignSite from './createFlipstarterCampaignSite'
-const lp = require('it-length-prefixed')
-const SATS_PER_BCH = 100000000;
+import { SATS_PER_BCH, calculateTotalRecipientMinerFees } from "@ipfs-flipstarter/utils"
 
 let apiResponse
 
@@ -106,11 +106,18 @@ function initializeEventListeners(ipfs) {
 
   $("#form").on("click", "#add-recipient", function(evt) {
     addRecipient()
+    
+    const recipientNum = $('#recipients .recipient').length
+    $("#recipients-fee").text(`+${ calculateTotalRecipientMinerFees(recipientNum) } SATS *`)
   })
 
   // Remove recipient
   $("#form").on("click", "#recipients .remove", function() {
     $(this).parent("div").remove();
+    
+    const recipientNum = $('#recipients .recipient').length
+
+    $("#recipients-fee").text(`+${ calculateTotalRecipientMinerFees(recipientNum) } SATS *`)
   });
 
   $("#form").on("click", "#create", async function(event) {
@@ -292,15 +299,33 @@ function initializeEventListeners(ipfs) {
         campaign.address = formValues.api_address.replace(/\/$/, "")
       }
 
+      // // Send to ipfs api endpoint if selected (as opposed to only in browser or by preloading?)
+      // if (formValues.gateway_address) {
+        
+      //   try {
+          
+      //     const ipfsApi = new ipfsClient({ url: formValues.gateway_address, mode: "no-cors" })
+      //     await createFlipstarterCampaignSite(ipfsApi, campaign)
+        
+      //   } catch (err) {
+      //     console.log("Failed to update gateway", formValues.gateway_address, err)
+      //   }
+      // }
+
+      // const gatewayUrl = formValues.gateway_address || "https://gateway.ipfs.io"
+      const gatewayUrl = "https://gateway.ipfs.io"
       const hash = await createFlipstarterCampaignSite(ipfs, campaign)
-      const url = "https://gateway.ipfs.io/ipfs/" + hash
+
+      const url = gatewayUrl + "/ipfs/" + hash
 
       resultArea.removeClass("d-none")
       resultLink.prop('href', url)
       resultLink.text(url)
 
       window.open(url, "flipstarter")
-      createBtn.text("Campaign created")
+      createBtn.html('Campaign created. <small style="display: block;font-size: 12px;">(click again to reupload)</small>')
+
+      createBtn.prop('disabled', false)
 
     } catch (error) {
 
@@ -329,9 +354,8 @@ function addRecipient() {
   if (index < maxRecipients) {
     $("#recipients").append(
       `<div class="recipient">
-        <p class="${ index !== 0 ? 'd-inline' : '' }">Recipient ${index + 1}</p>
-        ${ index !== 0 ? '<div class="remove btn btn-link text-danger d-inline float-right">Remove</div>' : '' }
-        <div class="form-row text-muted">
+        <p class="${ index !== 0 ? 'd-inline' : '' }">Recipient ${index + 1}</p> ${ index !== 0 ? '<div class="remove btn btn-link text-danger d-inline float-right">Remove</div>' : '' }
+        <div class="form-row text-muted clearfix">
           <div class="form-group col-lg-4">
             <label for="amount[${index}]">Funding Goal <small>(amount in BCH)</small></label>
             <input type="number" class="form-control goal-input" id="amount[${index}]" name="amount[${index}]" step="0.00000001" min="0.00000546" required>
