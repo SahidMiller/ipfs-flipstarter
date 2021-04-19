@@ -91,7 +91,14 @@ async function deploy(log, { verbose = true, mode = "production" } = {}) {
         }
 
         //Add all items from selected root folder
-        const response = await exec.command(package)("ipfs add -rQ " + selectedRoot)
+
+        const ignoreFilesOpts = typeof(packageJson.ipfs) === 'object' && packageJson.ipfs.ignore ? packageJson.ipfs.ignore : []
+        const ignoreFilesOptsStr = ignoreFilesOpts.reduce((optsStr, ignoreFile) => {
+            return optsStr + `--ignore=${ignoreFile} `
+        }, " ")
+
+        const response = await exec.command(package)("ipfs add -rQ " + selectedRoot + ignoreFilesOptsStr)
+        console.log("ipfs add -rQ " + selectedRoot + ignoreFilesOptsStr)
 
         //Check if a valid CID from stdout
         let cid
@@ -151,7 +158,10 @@ async function watch(log) {
         awaitWriteFinish: true // Helps minimising thrashing of watch events
     });
     
+    //TODO God willing: start app as soon as built and don't wait on building what's dependent on it.
     const rebuildPackage = async (path) => {
+        //TODO God willing: debounce if multiple files change in a short amount of time, God willing. 
+        //TODO God willing: and wait until previous ends before starting a new one (queue), God willing.
         const package = packages.find(package => path.indexOf(package.location) === 0)
         
         log.info("Rebuilding", package.name);

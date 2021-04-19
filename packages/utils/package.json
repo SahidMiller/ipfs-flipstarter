@@ -1,6 +1,6 @@
 {
   "name": "@ipfs-flipstarter/utils",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -8,14 +8,22 @@
   },
   "author": "",
   "license": "ISC",
+  "devDependencies": {
+    "html-webpack-plugin": "4"
+  },
   "dependencies": {
     "cids": "^1.1.6",
-    "html-webpack-plugin": "4",
     "ipfs": "^0.54.4",
     "ipld-in-memory": "^8.0.0",
-    "peer-id": "^0.14.6"
-  },
-  "devDependencies": {
-    "cross-env": "^7.0.3"
+    "moment": "^2.29.1",
+    "peer-id": "^0.14.6",
+    "rehype-raw": "^5.1.0",
+    "rehype-stringify": "^8.0.0",
+    "remark": "^13.0.0",
+    "remark-generic-extensions": "^1.4.0",
+    "remark-gfm": "^1.0.0",
+    "remark-parse": "^9.0.0",
+    "remark-rehype": "^8.0.0",
+    "unified": "^9.2.1"
   }
 }

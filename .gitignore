@@ -10,4 +10,13 @@ configs/server-config.json
 lerna-debug.log
 .lerna/
 
-yarn-error.log
+packages/create/public
+packages/create/dist
+
+packages/client/public
+packages/client/dist
+
+packages/cash-provider/dist/
+
+packages/cash-wallet/dist/
+packages/cash-wallet/public/js

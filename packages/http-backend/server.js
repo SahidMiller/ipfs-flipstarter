@@ -54,12 +54,12 @@ const setup = async function () {
   // Enable parsing of both JSON and URL-encoded bodies.
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json());
-
-  // Load the configuration file.
-  app.config = require("./config.js");
-
+  
   // Read the package information file.
   app.software = require("./package.json");
+
+  // Load the configuration file.
+  await require("./config.js")(app);
 
   // Load application modules.
   await require("./src/logging.js")(app);

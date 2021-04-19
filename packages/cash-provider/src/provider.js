@@ -1,11 +1,12 @@
 import "babel-polyfill";
 import axios from "axios";
 import { css } from "emotion";
+import { cid as DWEB_WALLET_CID } from "@dweb-cash/wallet"
 
 const SIGNUP_ORIGIN =
   process.env.NODE_ENV === "development"
     ? "http://localhost:5050"
-    : "https://dweb.link/ipfs/" + process.env.DWEB_WALLET_CID;
+    : "https://dweb.link/ipfs/" + DWEB_WALLET_CID;
 
 const SIGNUP_TX_BRIDGE =
   process.env.NODE_ENV === "development"

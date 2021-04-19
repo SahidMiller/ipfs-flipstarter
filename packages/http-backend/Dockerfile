@@ -5,7 +5,6 @@ ENV DEBUG='flipstarter:status, flipstarter:server'
 
 ENV FLIPSTARTER_API_AUTH="pending-contributions"
 ENV FLIPSTARTER_IPFS_GATEWAY_URL="https://ipfs.io"
-ENV FLIPSTARTER_CREATE_CID="QmaELvSGKBzBCP1pGSMQzdizcXQCzfwpQpuYsqvcpEGPXb"
 
 WORKDIR /app
 COPY package.json /app
