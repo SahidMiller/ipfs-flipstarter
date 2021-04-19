@@ -4,18 +4,14 @@ const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const RemovePlugin = require('remove-files-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
-const VirtualModulesPlugin = require('webpack-virtual-modules');
+const DagEntryPlugin = require('webpack-dag-entry-plugin');
 
 const path = require('path')
 
 module.exports = (env = {}) => {
 
     const plugins = []
-    const serveApp = {}
     
-    const defer = {}
-    defer.promise = new Promise(res => defer.resolve = res)
-
     //Use static files for client page during development (Navigate directly to it, God willing)
     //Create logic overrides these hardcoded cids
     if (process.env.NODE_ENV === "development") {
@@ -35,12 +31,11 @@ module.exports = (env = {}) => {
         }
     } 
 
-    return [merge(webpack, {
+    return merge(webpack, {
         name: "client",
         target: 'web',
         entry: {
-            app: './index.js',
-            ...serveApp
+            app: './src/index.js',
         },
         output: { 
             path: path.join(__dirname, './public/'),
@@ -51,7 +46,8 @@ module.exports = (env = {}) => {
             new RemovePlugin({
                 before: {
                     include: [
-                        './public/'
+                        './public/',
+                        './dist'
                     ],
                     log: false,
                     logWarning: true,
@@ -71,59 +67,11 @@ module.exports = (env = {}) => {
                 inject: 'body',
                 favicon: "../../public/img/logo.ico",
             }),
-            {
-                apply: (compiler) => compiler.hooks.afterEmit.tap("DeferAfterEmitPlugin", () => {
-                    defer.resolve()
-                })
-            },
+            new DagEntryPlugin({
+                config: "./index.js",
+                filename: "dist/index.js"
+            }),
             ...plugins
         ]
-    }), merge(webpack, {
-        name: 'index',
-        target: 'node',
-        entry: './client-dag.config.js',
-        output: { 
-            path: path.join(__dirname, './dist'),
-            filename: "index.js",
-            publicPath: './', //Necessary with WebpackCdn
-            library: 'createDag',
-            libraryTarget: 'umd',
-            globalObject: 'this',
-        },
-        plugins: [
-            new RemovePlugin({
-                before: {
-                    include: [
-                        './dist/'
-                    ],
-                    log: false,
-                    logWarning: true,
-                    logError: true,
-                    logDebug: false
-                },
-                watch: {
-                    beforeForFirstBuild: true
-                }
-            }),
-            {
-                apply: (compiler) => compiler.hooks.beforeRun.tapPromise("DelayBeforeRunPlugin", () => {
-                    return defer.promise
-                })
-            },
-            //TODO God willing: after emit, use the dag-loader or something to get a dag-node + cid, God willing, so it can be imported.
-            new VirtualModulesPlugin({
-                'node_modules/client-dag.config.js': `module.exports = {
-                    files: {
-                        //Relative to node_modules
-                        root: '../public',
-                        globs: [
-                            /* Make sure that files matched can be handled by your webpack loaders */
-                            '**/*'
-                        ]
-                    }
-                };`,
-                'node_modules/client-dag.js': `module.exports = require('dag-loader!client-dag.config');`
-            })
-        ]
-    })]
+    })
 }

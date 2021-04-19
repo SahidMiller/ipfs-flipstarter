@@ -1,13 +1,15 @@
 import PeerId from 'peer-id'
 import { requestStream } from 'libp2p-stream-helper'
-import { getSerializedRecordKey, unmarshalIpnsMessage, startRemoteListeners, resolveIPNSKey } from '../utils/ipfs/ipns'
+import { ipfsUtilities, ipnsUtilities } from '@ipfs-flipstarter/utils'
 import EventEmitter from 'events'
-import { cat } from '../utils/ipfs/ipfs'
 import pRetry from 'p-retry'
 import pTimeout from 'p-timeout'
 import CID from 'cids'
 import IpfsHttpClient from 'ipfs-http-client'
 import Ipfs from 'ipfs'
+
+const { getSerializedRecordKey, unmarshalIpnsMessage, startRemoteListeners, resolveIPNSKey } = ipnsUtilities
+const { cat } = ipfsUtilities
 
 const startIpnsListener = (ipfs, base58Id, cb) => {
     let seqNum = 0

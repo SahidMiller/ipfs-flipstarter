@@ -6,7 +6,6 @@
         "name":"Test",
         "url":"https://www.test.com",
         "image":"https://navbar.cloud.bitcoin.com/images/logo_black.png",
-        "alias":"Test",
         "address":"bchtest:qqekcwxmfzhgn775r6t382g08mx4cxclfsd2d2v0x0",
         "signature":null,
         "satoshis":1000

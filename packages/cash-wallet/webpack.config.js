@@ -1,14 +1,13 @@
 const webpack = require("webpack")
 const merge = require('../../configs/webpack')
-const VirtualModulesPlugin = require('webpack-virtual-modules');
-const RemovePlugin = require('remove-files-webpack-plugin')
+const DagEntryPlugin = require('webpack-dag-entry-plugin');
 
 const path = require("path");
 
 const defer = {}
 defer.promise = new Promise(res => defer.resolve = res)
 
-module.exports = [merge(webpack, {
+module.exports = merge(webpack, {
   name: "wallet",
   entry: {
     signer: "./src/index.js",
@@ -85,57 +84,9 @@ module.exports = [merge(webpack, {
         process.env.NODE_ENV === "development" ?
           "https://www.blockchain.com/bch-testnet/tx/" :
           "https://blockchair.com/bitcoin-cash/transaction/")
-  }), 
-  {
-    apply: (compiler) => compiler.hooks.afterEmit.tap("DeferAfterEmitPlugin", () => {
-      defer.resolve()
-    })
-  }]
-}, true), merge(webpack, {
-  name: 'index',
-  target: 'node',
-  entry: './index.js',
-  output: { 
-      path: path.join(__dirname, './dist'),
-      filename: "index.js",
-      publicPath: './', //Necessary with WebpackCdn
-      library: 'cashWallet',
-      libraryTarget: 'umd',
-      globalObject: 'this',
-  },
-  plugins: [
-    new RemovePlugin({
-      before: {
-          include: [
-              './dist/'
-          ],
-          log: false,
-          logWarning: true,
-          logError: true,
-          logDebug: false
-      },
-      watch: {
-          beforeForFirstBuild: true
-      }
-    }),
-    {
-      apply: (compiler) => compiler.hooks.beforeRun.tapPromise("DelayBeforeRunPlugin", () => {
-          return defer.promise
-      })
-    },
-    //TODO God willing: after emit, use the dag-loader or something to get a dag-node + cid, God willing, so it can be imported.
-    new VirtualModulesPlugin({
-        'node_modules/wallet-dag.config.js': `module.exports = {
-            files: {
-                //Relative to node_modules
-                root: '../public',
-                globs: [
-                  /* Make sure that files matched can be handled by your webpack loaders */
-                  '**/*'
-                ]
-            }
-        };`,
-        'node_modules/wallet-dag.js': `module.exports = require('dag-loader!wallet-dag.config');`
-    })
-  ]
-})];
+  }),
+  new DagEntryPlugin({
+    config: "./index.js",
+    filename: "./dist/index.js"
+  })]
+}, true);
