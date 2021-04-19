@@ -10,48 +10,38 @@ import 'popper.js'
 import bchaddr from 'bchaddrjs'
 import Ipfs from 'ipfs'
 //import ipfsClient from 'ipfs-http-client'
+import { get, set } from 'idb-keyval';
 import { requestStream } from 'libp2p-stream-helper'
 import createFlipstarterCampaignSite from './createFlipstarterCampaignSite'
-import { SATS_PER_BCH, calculateTotalRecipientMinerFees } from "@ipfs-flipstarter/utils"
+import { SATS_PER_BCH, calculateTotalRecipientMinerFees } from "@ipfs-flipstarter/utils/bitcoinCashUtilities"
 
-let apiResponse
+import { markdownParser, createFlipstarterClientHtml } from '@ipfs-flipstarter/utils'
+
+import EasyMDE from 'easymde'
+import 'easymde/dist/easymde.min.css'
+import 'codemirror/lib/codemirror.css'
+
+// https://stackoverflow.com/questions/44029866/import-javascript-files-as-a-string
+import clientIndexPageTempl from '!raw-loader!@ipfs-flipstarter/client/public/static/templates/index.html'
+import createDOMPurify from "dompurify"
+
+const DOMPurify = createDOMPurify(window)
 
 export default async function initialize() {
-  $(".load-indicator").addClass("d-none")
-
   window.ipfs = await Ipfs.create({ 
     EXPERIMENTAL: {
       ipnsPubsub: true
     }
   })
 
-  const { api_type, api_address, recipient_address } = qs.parse(window.location.search, { arrayFormat: 'index' })
+  await initializeFormValues()
+  await restoreScroll()
   
-  if (api_type === "ipfs" || api_type === "https") {
-    $(`#api_type > option[value=${api_type}]`).prop('selected', true)
-  }
-
-  if (api_address) {
-    $("#api_address").val(api_address)
-    $("#api_confirmation").prop( "checked", true );
-  }
-
-  if (recipient_address) {
-    $("#bch_address\\[0\\]").val(recipient_address)
-  }
-
-  const startDate = getDateParts(moment().unix())
-  const endDate = getDateParts(moment().add(1, 'days').unix())
-  
-  $("#start_year").val(startDate.year)
-  $("#start_month > option").eq(startDate.month).prop('selected', true)
-  $("#start_day").val(startDate.day)
-
-  $("#end_year").val(endDate.year)
-  $("#end_month > option").eq(endDate.month).prop('selected', true)
-  $("#end_day").val(endDate.day)
-
   initializeEventListeners(ipfs)
+
+  $("html, body").removeClass("scroll-lock")
+  $("#load-indicator-container").addClass("d-none")
+
   return false
 }
 
@@ -122,6 +112,25 @@ function initializeEventListeners(ipfs) {
     $("#recipients-fee").text(`+${ calculateTotalRecipientMinerFees(recipientNum) } SATS *`)
   });
 
+  $("#preview-close").on("click", async function (event) {
+    event.preventDefault()
+    $("#preview-content-container").addClass("d-none")
+  })
+
+  $("#form").on("click", "#preview", async function (event) {
+    event.preventDefault()
+
+    if (!validateForm()) {
+      return
+    }
+
+    const clientPageHtml = await (await fetch("client.html")).text()
+    const campaign = getCampaignFormValues()
+
+    $("#preview-content-container").removeClass("d-none")
+    $("#preview-content")[0].srcdoc = await createFlipstarterClientHtml(clientPageHtml, campaign)
+  })
+
   $("#form").on("click", "#create", async function(event) {
     event.preventDefault()
 
@@ -142,181 +151,25 @@ function initializeEventListeners(ipfs) {
       resultArea.addClass("d-none")
       errorBox.addClass("d-none")
 
-      const formValues = qs.parse($("form").serialize(), { arrayFormat: 'index' })
-
-      // Convert date to EPOCH
-      const start_year = formValues.start_year;
-      const start_month = formValues.start_month;
-      const start_day = formValues.start_day;
-      const start_date = moment(start_year + "-" + start_month + "-" + start_day, "YYYY-MM-DD").unix()
-
-      const end_year = formValues.end_year;
-      const end_month = formValues.end_month;
-      const end_day = formValues.end_day;
-      const end_date = moment(end_year + "-" + end_month + "-" + end_day, "YYYY-MM-DD").unix()
-
-      const recipients = formValues.recipient_name.map((_, i) => {
-        return {
-          name: formValues.recipient_name[i],
-          url: formValues.project_url[i],
-          image: formValues.image_url[i],
-          address: formValues.bch_address[i],
-          signature: null,
-          satoshis: Number(formValues.amount[i]) * SATS_PER_BCH // to satoshis
-        }
-      })
-      const requestedSatoshis = recipients.reduce((sum, recipient) => {
-        return sum + recipient.satoshis
-      }, 0)
-
-      const campaign = {
-        title: formValues.title,
-        starts: Number(start_date),
-        expires: Number(end_date),
-        recipients,
-        contributions: [],
-        fullfilled: false,
-        fullfillmentTx: null,
-        fullfillmentTimestamp: null,
-        descriptions: {
-          "en": { abstract: formValues.abstract, proposal: formValues.proposal },
-          "es": { abstract: formValues.abstractES, proposal: formValues.proposalES },
-          "zh": { abstract: formValues.abstractZH, proposal: formValues.proposalZH },
-          "ja": { abstract: formValues.abstractJA, proposal: formValues.proposalJA }
-        },
-        apiType: formValues.api_type,
-        rewardUrl: formValues.reward_url
-      }
+      const campaign = getCampaignFormValues()
       
-      //Submit to remote address for campaign id's
+      //Submit to remote address for campaign id and addresses
+      if (!campaign.id) {
 
-      if (apiResponse) {
-        
-        campaign.id = apiResponse.id
-        campaign.address = apiResponse.address
-        
-        if (campaign.apiType === "ipfs") {
-          campaign.publishingId = apiResponse.publishingId
-        }
+        const { id, address } = requestFlipstarterCampaign(campaign)
 
-      } else if (formValues.api_confirmation) {
-        
-        if (campaign.apiType === "ipfs") {
-            
-          let multiaddress
-          
-          try {
-            
-            multiaddress = Ipfs.multiaddr(formValues.api_address)
-          
-          } catch {
-            
-            throw "Invalid address"
-          }
+        //TODO God willing: set api_type via address
+        campaign.id = id
+        campaign.address = address
 
-          try {
-            
-            await ipfs.swarm.connect(multiaddress.toString())
-          
-          } catch (err) {
-            console.log(err)
-            throw "Could not connect to remote address"
-          }
-        
-          try {
-
-            const peerId = Ipfs.PeerId.createFromB58String(multiaddress.getPeerId())
-            const connectionStream = await ipfs.libp2p.dialProtocol(peerId, "/flipstarter/create")
-            apiResponse = await requestStream(connectionStream, { campaign })
-
-          } catch(err) {
-
-            if (err.name === "Libp2pConnectionError") {
-              throw "Failed to create flipstarter with remote server: " + err.message
-            }
-
-            throw "Failed to create flipstarter with remote server"
-          
-          } finally {
-            
-            await ipfs.swarm.disconnect(multiaddress.toString())
-          }
-          
-          try {
-
-            const { publishingId, addresses, ipfsId } = apiResponse
-            
-            campaign.publishingId = publishingId
-            campaign.addresses = addresses
-            campaign.ipfsId = ipfsId
-
-          } catch {
-
-            throw "Invalid response from remote server"
-          }
-
-        } else {
-          
-          let response
-          const apiRoot = formValues.api_address.replace(/\/$/, "")
-
-          try {
-            
-            response = await pTimeout(await fetch(apiRoot + "/create", {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(campaign)
-            }), 60000)
-
-          } catch (error) {
-            throw "Failed to create flipstarter with remote server"
-          }
-
-          if (response.status === 403) {
-            throw "Unauthorized to access remote server"
-          }
-
-          if (response.status !== 200) {
-              throw "Invalid response from remote server"
-          }
-
-          try {          
-
-              apiResponse = await response.json()
-
-              campaign.id = apiResponse.id
-              campaign.address = apiResponse.address || apiRoot
-          
-          } catch {
-            
-            throw "Invalid response from remote server"
-          }
-        }
-
-      } else {
-        //TODO God willing: set address with api root and id with api id, God willing.
-        campaign.id = formValues.api_id
-        campaign.address = formValues.api_address.replace(/\/$/, "")
+        // Set new id and address and set api confirmation to false for future
+        setApiFields(id, address, false)
       }
-
-      // // Send to ipfs api endpoint if selected (as opposed to only in browser or by preloading?)
-      // if (formValues.gateway_address) {
-        
-      //   try {
-          
-      //     const ipfsApi = new ipfsClient({ url: formValues.gateway_address, mode: "no-cors" })
-      //     await createFlipstarterCampaignSite(ipfsApi, campaign)
-        
-      //   } catch (err) {
-      //     console.log("Failed to update gateway", formValues.gateway_address, err)
-      //   }
-      // }
 
       // const gatewayUrl = formValues.gateway_address || "https://gateway.ipfs.io"
       const gatewayUrl = "https://gateway.ipfs.io"
-      const hash = await createFlipstarterCampaignSite(ipfs, campaign)
+      const indexPageHtml = await createFlipstarterClientHtml(clientIndexPageTempl, campaign)
+      const hash = await createFlipstarterCampaignSite(ipfs, indexPageHtml, campaign)
 
       const url = gatewayUrl + "/ipfs/" + hash
 
@@ -328,6 +181,12 @@ function initializeEventListeners(ipfs) {
       createBtn.html('Campaign created. <small style="display: block;font-size: 12px;">(click again to reupload)</small>')
 
       createBtn.prop('disabled', false)
+      
+      // Remove the draft functionality on refresh
+      set("draft", undefined)
+
+      // Save the campaign in local in case using dns or ipns
+      set(campaign.id, campaign)
 
     } catch (error) {
 
@@ -337,10 +196,337 @@ function initializeEventListeners(ipfs) {
       createBtn.prop('disabled', false)
     }
   })
+  
+  $("#form")[0].addEventListener('change', (event) => {
+    const campaign = getCampaignFormValues()
+    set("draft", campaign)
+  }, true, true)
+
+  $(window).on("scroll", () => {
+    set("scrollHeight", window.scrollY)
+  })
+}
+
+function setApiFields(apiType, address, sendFlag = true) {
+  $(`#api_type > option`).prop('selected', false)
+  $(`#api_type > option[value=${apiType}]`).prop('selected', true)
+
+  if (apiType === "https") {
+    $("#api_address").val(address)
+  }
+
+  $("api_confirmation").prop("checked", sendFlag)
+}
+
+async function requestFlipstarterCampaign(campaign, apiType, address) {
+        
+  if (apiType === "ipfs") {
+      
+    let multiaddress
+    
+    try {
+      
+      multiaddress = Ipfs.multiaddr(address)
+    
+    } catch {
+      
+      throw "Invalid address"
+    }
+
+    try {
+      
+      await ipfs.swarm.connect(multiaddress.toString())
+    
+    } catch (err) {
+      console.log(err)
+      throw "Could not connect to remote address"
+    }
+    
+    let response
+
+    try {
+
+      const peerId = Ipfs.PeerId.createFromB58String(multiaddress.getPeerId())
+      const connectionStream = await ipfs.libp2p.dialProtocol(peerId, "/flipstarter/create")
+      response = await requestStream(connectionStream, { campaign })
+
+    } catch(err) {
+
+      if (err.name === "Libp2pConnectionError") {
+        throw "Failed to create flipstarter with remote server: " + err.message
+      }
+
+      throw "Failed to create flipstarter with remote server"
+    
+    } finally {
+      
+      await ipfs.swarm.disconnect(multiaddress.toString())
+    }
+    
+    try {
+
+      const { publishingId, addresses, ipfsId } = response
+
+      return { 
+        id: publishingId,
+        address: { addresses, peerId: ipfsId }
+      }
+
+    } catch {
+
+      throw "Invalid response from remote server"
+    }
+
+  } 
+  
+  if (apiType === "https") {
+    
+    let response
+    const apiRoot = address.replace(/\/$/, "")
+
+    try {
+      
+      response = await pTimeout(await fetch(apiRoot + "/create", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(campaign)
+      }), 60000)
+
+    } catch (error) {
+      throw "Failed to create flipstarter with remote server"
+    }
+
+    if (response.status === 403) {
+      throw "Unauthorized to access remote server"
+    }
+
+    if (response.status !== 200) {
+        throw "Invalid response from remote server"
+    }
+
+    try {          
+
+        const response = await response.json()
+
+        return {
+          id: response.id,
+          address: response.address || apiRoot
+        }
+    
+    } catch {
+      
+      throw "Invalid response from remote server"
+    }
+  }
+}
+
+function getCampaignFormValues() {
+
+  const formValues = qs.parse($("form").serialize(), { arrayFormat: 'index' })
+
+  // Convert date to EPOCH
+  const start_year = formValues.start_year;
+  const start_month = formValues.start_month;
+  const start_day = formValues.start_day;
+  const start_date = moment(start_year + "-" + start_month + "-" + start_day, "YYYY-MM-DD").unix()
+
+  const end_year = formValues.end_year;
+  const end_month = formValues.end_month;
+  const end_day = formValues.end_day;
+  const end_date = moment(end_year + "-" + end_month + "-" + end_day, "YYYY-MM-DD").unix()
+
+  const recipients = formValues.recipient_name.map((_, i) => {
+    return {
+      name: formValues.recipient_name[i],
+      url: formValues.project_url[i],
+      image: formValues.image_url[i],
+      address: formValues.bch_address[i],
+      signature: null,
+      satoshis: Number(formValues.amount[i]) * SATS_PER_BCH // to satoshis
+    }
+  })
+
+  const campaign = {
+    title: formValues.title,
+    starts: Number(start_date),
+    expires: Number(end_date),
+    recipients,
+    contributions: [],
+    fullfilled: false,
+    fullfillmentTx: null,
+    fullfillmentTimestamp: null,
+    descriptions: {
+      "en": { abstract: formValues.abstract, proposal: formValues.proposal },
+      "es": { abstract: formValues.abstractES, proposal: formValues.proposalES },
+      "zh": { abstract: formValues.abstractZH, proposal: formValues.proposalZH },
+      "ja": { abstract: formValues.abstractJA, proposal: formValues.proposalJA }
+    },
+    rewardUrl: formValues.reward_url,
+    apiType: formValues.api_type
+  }
+
+  // Return id to the caller if no api confirmation to send (which will override existing id)
+  if (!formValues.api_confirmation) {
+    
+    campaign.id = formValues.api_id
+    
+    if (formValues.api_type === "https") {
+      campaign.address = formValues.api_address.replace(/\/$/, "")
+    }
+
+    if (formValues.api_type === "ipfs") {
+      campaign.address = formValues.api_address
+    }
+  }
+
+  return campaign
+}
+
+async function restoreScroll() {
+  const scrollHeight = await get("scrollHeight")
+  //Only scroll if we have a title
+  if ($("#title").val() && scrollHeight) {
+    window.scrollTo(0, scrollHeight)
+  } else {
+    window.scrollTo(0, 0)
+  }
+}
+
+function setCampaignFormValues(campaign) {
+  if (campaign.title) {
+    $("#title").val(campaign.title)
+  }
+
+  if (campaign.id) {
+    //TODO God willing: rename to just id
+    // Number of ways to guarantee a unique id, God willing.
+    // That can be used in other places. Just prove you "own" it, God willing.
+    $("#api_id").val(campaign.id)
+  }
+
+  //Set flag initially if no campaign id
+  setApiFields(campaign.apiType, campaign.address, !campaign.id)
+
+  if (campaign.address) {
+    $("#api_address").val(campaign.address)
+    $("#api_confirmation").prop( "checked", true );
+  }
+
+  (campaign.recipients || []).forEach((recipient, i) => {
+    $(`#recipient_name\\[${i}\\]`).val(recipient.name),
+    $(`#project_url\\[${i}\\]`).val(recipient.url),
+    $(`#image_url\\[${i}\\]`).val(recipient.image),
+    $(`#bch_address\\[${i}\\]`).val(recipient.address),
+    $(`#amount\\[${i}\\]`).val(recipient.satoshis ? (recipient.satoshis / SATS_PER_BCH).toFixed(8) : 0) // to bch
+  })
+
+  const startDate = campaign.starts ? moment.unix(campaign.starts) : moment.unix()
+  const endDate = campaign.expires ? moment.unix(campaign.expires) : moment().add(1, 'days').unix()
+  setDates(startDate, endDate)
+
+  if (campaign.rewardUrl) {
+    $("#reward_url").val(campaign.rewardUrl)
+  }
+
+  ["en", "es", "zh", "ja"].forEach(lang => {
+    const { abstract, proposal } = campaign.descriptions[lang] || {}
+    const suffix = lang === "en" ? "" : lang.toUpperCase()
+
+    if (abstract) {
+      $("#abstract" + suffix).val(abstract)
+    }
+
+    if (proposal) {
+      $("#proposal" + suffix).val(proposal)
+    }
+  })
+}
+
+async function initializeFormValues() {
+  const campaign = await get("draft")
+
+  if (campaign) {
+
+    setCampaignFormValues(campaign)
+
+  } else {
+
+    const { api_type, api_address, recipient_address } = qs.parse(window.location.search, { arrayFormat: 'index' })
+    
+    //Set api confirmation flag to true
+    setApiFields(api_type, api_address, true)
+
+    if (api_type === "ipfs" || api_type === "https") {
+      $(`#api_type > option[value=${api_type}]`).prop('selected', true)
+    }
+
+    if (api_address) {
+      $("#api_address").val(api_address)
+      $("#api_confirmation").prop( "checked", true );
+    }
+
+    if (recipient_address) {
+      $("#bch_address\\[0\\]").val(recipient_address)
+    }
+    
+    const startDate = moment().unix()
+    const endDate = moment().add(1, 'days').unix()
+    setDates(startDate, endDate)
+  }
+  
+  const abstractElem = $('#abstract')
+  const proposalElem = $('#proposal')
+
+  const easyMDEs = [new EasyMDE({
+    element: abstractElem[0],
+    //TODO God willing: upload images to IPFS or save URL, God willing. 
+    //imageUploadEndpoint
+    hideIcons: ["side-by-side", "fullscreen"],
+    previewRender: (markdown, previewElem) => { 
+      (async () => {
+        previewElem.innerHTML = DOMPurify.sanitize(await markdownParser(markdown))
+      })()
+
+      return ""
+    },
+    //TODO God willing: immediately update form and trigger save (no ref to mde)
+    forceSync: true
+  }), new EasyMDE({
+    element: proposalElem[0],
+    hideIcons: ["side-by-side", "fullscreen"],
+    previewRender: (markdown, previewElem) => { 
+      (async () => {
+        previewElem.innerHTML = DOMPurify.sanitize(await markdownParser(markdown))
+      })()
+
+      return ""
+    },
+    //TODO God willing: immediately update form and trigger save (no ref to mde)
+    forceSync: true
+  })]
+
+  easyMDEs.forEach(easyMDE => easyMDE.codemirror.on("change", function(){
+    $("#form")[0].dispatchEvent(new Event('change'))
+  }));
+}
+
+function setDates(start, end) {
+  const startDate = getDateParts(start)
+  const endDate = getDateParts(end)
+
+  $("#start_year").val(startDate.year)
+  $("#start_month > option").eq(startDate.month).prop('selected', true)
+  $("#start_day").val(startDate.day)
+
+  $("#end_year").val(endDate.year)
+  $("#end_month > option").eq(endDate.month).prop('selected', true)
+  $("#end_day").val(endDate.day)
 }
 
 function getDateParts(unixDate) {
-  const momentDate = moment.unix(unixDate)
+  const momentDate = moment.isMoment(unixDate) ? unixDate : moment.unix(unixDate)
 
   return {
     year: momentDate.format('YYYY'),
@@ -455,3 +641,5 @@ function validateForm() {
     return false
   }
 }
+
+window.initializatonPromise = initialize()

@@ -7,12 +7,13 @@
   <!-- -->
   <link href="../css/materialize.min.css" rel="stylesheet">
   <link href="../css/client.css" rel="stylesheet">
+  <link href="../css/rte.css" rel="stylesheet">
 
   <!-- Website metadata -->
   <title>{{ title }}</title>
   
   <meta property="og:title" content="{{ title }}">
-  <meta property="og:description" content="{{ description }}">
+  <meta property="og:description" content="{{ shortDescription }}">
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ url }}">
   <meta property="og:image" content="{{ image }}">
@@ -29,7 +30,7 @@
       <!-- Site header -->
       <header class="container row center">
         <h1 class="cols s12 m12 l12">
-          <span id="campaignTitle"></span>
+          <span id="campaignTitle">{{ title }}</span>
         </h1>
       </header>
 
@@ -49,8 +50,8 @@
           <div style="float: left;">
             <span class="valign-wrapper" style="float: left;">
               <i class="icon-access_time"></i>
-              <span id="timerLabel" data-string="expiresLabel"></span>
-              <b id="campaignExpiration">...</b>
+              <span id="timerLabel" data-string="expiresLabel">{{ timerLabel }}</span>
+              <b id="campaignExpiration">{{ timerDaysUntil }}</b>
             </span>
           </div>
           <div style="float: right;">
@@ -58,7 +59,7 @@
               <i class="icon-bookmark_border"></i>
               <span id="campaignContributionAmount">0.00</span>
               <i>/</i>
-              <span id="campaignRequestAmount">-.--</span>
+              <span id="campaignRequestAmount">{{ requestedAmount }}</span>
               <b>BCH</b>
             </span>
           </div>
@@ -69,7 +70,7 @@
         </section>
 
         <!-- Campaign heading -->
-        <header id="campaignAbstract"></header>
+        <header id="campaignAbstract">{{{ description }}}</header>
 
         <!-- Campaign donation form -->
         <fieldset id="donateField" class="row">
@@ -78,7 +79,7 @@
             <a target="_blank" rel="noopener noreferrer" id="claimRewardLink">Claim your reward</a>
           </div>
                     
-          <div id="donateForm" class="col s12 m12 l12 hidden">
+          <div id="donateForm" class="col s12 m12 l12">
             <div class="input-field col s1 m1 l1" style="padding: 0;">
               <i
               style="
@@ -285,7 +286,7 @@
 </fieldset>
 
 <!-- Campaign details. -->
-<section id="campaignDetails" class="row"></section>
+<section id="campaignDetails" class="row">{{{ details }}}</section>
 </article>
 
 <!-- Campaign sidebar -->
@@ -294,16 +295,24 @@
     <h3 style="float: left;">
       <span class="valign-wrapper" style="float: left;">
         <i class="icon-face"></i>
-        <b id="campaignRecipientCount">0</b>
-        <span data-string="recipientsLabel"></span>
+        <b id="campaignRecipientCount">{{ recipientCount }}</b>
+        <span data-string="recipientsLabel">{{ recipientsLabel }}</span>
       </span>
     </h3>
     <hr>
-    <ul
-    id="recipientList"
-    class="row"
-    style="margin-bottom: 2rem;"
-    ></ul>
+    <ul id="recipientList" class="row" style="margin-bottom: 2rem;">
+      {{#recipients}}
+      <li class='col s6 m6 l12'>
+				<a href='{{url}}' target="_blank">
+					<img src='{{image}}' alt='{{name}}' />
+					<span>
+						<b>{{name}}</b>
+						<i title="{{amountInSatoshis}}">{{amountInBch}} BCH</i>
+					</span>
+				</a>
+			</li>
+      {{/recipients}}
+    </ul>
   </section>
 
   <section>
@@ -311,7 +320,7 @@
       <span class="valign-wrapper" style="float: left;">
         <i class="icon-favorite_border"></i>
         <b id="campaignContributorCount">0</b>
-        <span data-string="contributorsLabel"></span>
+        <span data-string="contributorsLabel">{{ contributorsLabel }}</span>
       </span>
     </h3>
     <hr>
@@ -437,14 +446,7 @@ style="display: flex; justify-content: center; text-align: left;"
     </li>
   </template>
   <template id="emptyContributionMessage">
-    <li
-    style="
-    display: block;
-    text-align: center;
-    color: rgba(0, 0, 0, 0.5);
-    padding: 2rem;
-    "
-    >
+    <li style="display: block;text-align: center;color: rgba(0, 0, 0, 0.5);padding: 2rem;">
     <i data-string="contributorEmpty1"></i>
     <br>
     <i data-string="contributorEmpty2"></i>

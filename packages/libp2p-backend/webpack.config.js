@@ -52,8 +52,7 @@ module.exports = merge(webpack, {
                 "https://node1.preload.ipfs.io", 
                 "https://node2.preload.ipfs.io", 
                 "https://node3.preload.ipfs.io"
-            ]),
-            __FLIPSTARTER_CREATE_CID__: JSON.stringify(process.env.FLIPSTARTER_CREATE_CID)
+            ])
         }),
         new HtmlWebpackTagsPlugin({
             tags: ['static/css/bootstrap.css']

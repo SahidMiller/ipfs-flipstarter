@@ -42,12 +42,10 @@ And open up [localhost:3000](http://localhost:3000) in your browser.
 ### Environment variables
 
 ```
-  ENV FLIPSTARTER_IPFS_GATEWAY_URL="http://..."       //defaults to "https://ipfs.io"
-  ENV FLIPSTARTER_CREATE_CID="Qm..."             //defaults to QmfZZXZPTLGk3e3h5oGX25qtXf4Nmdqv5RZgUyM44CaDbF"
-
   ENV FLIPSTARTER_API_URL="https://..."               //defaults to req.get('host')
   
   ENV FLIPSTARTER_API_REDIRECT_HOME_URL="https://..." //defaults to /create
+  ENV FLIPSTARTER_API_REDIRECT_CREATE_URL="https://..." //defaults to routing
 
   ENV FLIPSTARTER_API_AUTH="pending-contributions"    //required
 
