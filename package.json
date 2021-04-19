@@ -61,17 +61,18 @@
     "webpack": "^5.30.0",
     "webpack-cdn-plugin": "^3.3.1",
     "webpack-cli": "^4.6.0",
+    "webpack-dag-entry-plugin": "^0.0.1",
     "webpack-merge": "^5.7.3",
     "webpack-plugin-serve": "^1.4.1",
-    "webpack-virtual-modules": "^0.4.2"
+    "yarn": "^1.22.10"
   },
   "dependencies": {
-    "@dweb-cash/provider": "file:packages\\cash-provider",
-    "@dweb-cash/wallet": "file:packages\\cash-wallet",
-    "@ipfs-flipstarter/client": "file:packages\\client",
-    "@ipfs-flipstarter/create": "file:packages\\create",
-    "@ipfs-flipstarter/http-backend": "file:packages\\http-backend",
-    "@ipfs-flipstarter/libp2p-backend": "file:packages\\libp2p-backend",
-    "@ipfs-flipstarter/utils": "file:packages\\utils"
+    "@dweb-cash/provider": "link:packages\\cash-provider",
+    "@dweb-cash/wallet": "link:packages\\cash-wallet",
+    "@ipfs-flipstarter/client": "link:packages\\client",
+    "@ipfs-flipstarter/create": "link:packages\\create",
+    "@ipfs-flipstarter/http-backend": "link:packages\\http-backend",
+    "@ipfs-flipstarter/libp2p-backend": "link:packages\\libp2p-backend",
+    "@ipfs-flipstarter/utils": "link:packages\\utils"
   }
 }

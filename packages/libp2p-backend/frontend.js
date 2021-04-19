@@ -46,7 +46,8 @@ export default async function initialize() {
   }
 
   $("#campaigns").on("click", "#add", function() {
-    let url = "https://ipfs.io/ipfs/" + __FLIPSTARTER_CREATE_CID__ 
+    //TODO God willing: use dag-loader or cid-loader
+    let url = "https://ipfs.io/ipfs/"
 
     if (multiaddress) {
       url = url + "?type=ipfs&address=" + multiaddress

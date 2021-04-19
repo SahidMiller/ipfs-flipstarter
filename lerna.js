@@ -20,10 +20,6 @@ async function clean(log) {
  * Deploy all packages with "ipfs" property in package.json and "build" script.
  * 
  * ipfs property as string is root folder in package to add recursively
- * ipfs property as object with { root, envVar } 
- * 
- * root property is required
- * envVar property is optional, allowing to compose builds and embed latest CID, God willing
  * 
  * ipfs add -r {root}
  * 
@@ -40,23 +36,13 @@ async function deploy(log, { verbose = true, mode = "production" } = {}) {
 
   const packages = await loadPackages();
 
-  const cids = {}
   await iter.batched(packages)(async (package, log) => {
     const packageJson = require(package.manifestLocation)
-    const dependentEnvVars = getDependentEnv(packages, package, cids, mode)
-
-    // Pass env variables of dependencies to the dependent package, God willing.
-    let envVarsStr = Object.keys(dependentEnvVars).reduce((vars, name) => {
-        const value = dependentEnvVars[name]
-        return vars += `${name}=${value} `
-
-    //Trim, yarn has issues
-    }, 'npx cross-env ').trim()
 
     //Run build on all the packages not deployed on ipfs yet, God willing.
     if (package.scripts.build && !changes.isBuilt(package)(BUILT_FLAG + ":" + mode)) {
         
-        const command = `${envVarsStr} npm run build`
+        const command = `npx cross-env NODE_ENV=${mode} npm run build`
         
         if (verbose) {
             log.info("deploy-on-ipfs", package.name, "Running", command)
@@ -105,24 +91,13 @@ async function deploy(log, { verbose = true, mode = "production" } = {}) {
 
         try {
             cid = new CID(response).toBaseEncodedString()
+            log.info(package.name, cid)
         } catch (err) {
             log.warn("deploy-on-ipfs", package.name, "Failed CID check", response)
             return
         }
-
-        //Set env var if 
-        const envVar = packageJson.ipfs.envVar
-        if (typeof(envVar) === 'string') {
-            log.info("deploy-to-ipfs", package.name, envVar, cid)
-            cids[package.name] = { envVar, cid }
-        } else {
-            log.info("deploy-to-ipfs", package.name, cid)
-        }
     }
   });
-  
-  //Return env variables for development pipeline, God willing.
-  return cids
 }
 
 async function watch(log) {
@@ -133,11 +108,10 @@ async function watch(log) {
     const paths = packages.map(package => package.location)
 
     //Deploy and then start all packages
-    const envVars = await deploy(log, { verbose: false, mode: "development" })
+    await deploy(log, { verbose: false, mode: "development" })
     await Promise.all(packages.map(async (package) => {
-        const dependentEnvVars = getDependentEnv(packages, package, envVars, "development")
-        log.info("deploy-on-ipfs-watcher", `Starting ${package.name} with:`, dependentEnvVars)
-        start(package, dependentEnvVars).catch((err) => {
+        log.info("deploy-on-ipfs-watcher", `Starting ${package.name}`)
+        start(package).catch((err) => {
             log.error(package.name, err)
         })
     }))
@@ -171,10 +145,9 @@ async function watch(log) {
         
         // Stop the service in case it will be updated (can't do much about children)
         await end(package.name)
-
-        const nextEnvVars = (await deploy(log, { verbose: false, mode: "development" })) || ""
+        await deploy(log, { verbose: false, mode: "development" })
         
-        start(package, getDependentEnv(packages, package, nextEnvVars, "development")).catch((err) => {
+        start(package).catch((err) => {
             log.error(package.name, err)
         })
 
@@ -190,23 +163,15 @@ async function watch(log) {
 
 const running = {}
 const terminate = require("terminate")
-async function start(package, envVars) {
+async function start(package) {
     
     if (package.scripts.start) {
 
-        // Pass env variables of dependencies to the dependent package, God willing.
-        const envVarsStr = Object.keys(envVars).reduce((vars, name) => {
-            const value = envVars[name]
-            return vars += `${name}=${value} `
-
-        //Trim, yarn has issues
-        }, 'npx cross-env ').trim()
-
         //Spawn returns promise since wrapping catch.
-        running[package.name] = spawnProcess(envVarsStr + " npm run start", [], {
+        running[package.name] = spawnProcess(`npx cross-env NODE_ENV=${mode} npm run start`, [], {
             cwd: package.location,
             shell: true,
-            env: Object.assign({}, envVars, {
+            env: Object.assign({}, {
               LERNA_PACKAGE_NAME: package.name,
               LERNA_ROOT_PATH: __dirname,
             }),
@@ -230,19 +195,6 @@ async function end(packageName) {
     }
 }
 
-function getDependentEnv(packages, package, envVars, mode = "production") {
-    const dependencies = filters.includeFilteredDeps(packages)([package])
-
-    // Pass env variables of dependencies to the dependent package, God willing.
-    return dependencies.reduce((vars, package) => {
-        const { envVar, cid } = envVars[package.name] || {}
-        if(!!envVar && !!cid) {
-            vars[envVar] = cid
-        }
-
-        return vars
-    }, { "NODE_ENV": mode })
-}
 
 module.exports["deploy-on-ipfs"] = deploy;
 module.exports["deploy-on-ipfs-watcher"] = watch;

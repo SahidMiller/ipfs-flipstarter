@@ -1,6 +1,8 @@
 import CID from 'cids'
-import { uploadFile } from '../utils/ipfs/ipfs'
-import { dag as clientDagNode } from 'dag-loader!@ipfs-flipstarter/client/client-dag.config.js'
+import { ipfsUtilities } from '@ipfs-flipstarter/utils'
+import { dag as clientDagNode } from '@ipfs-flipstarter/client'
+
+const { uploadFile } = ipfsUtilities
 
 export default async function createFlipstarterCampaignSite(ipfs, indexPageHtml, initialCampaign) {
   const [indexPageLink, campaignLink] = await Promise.all([

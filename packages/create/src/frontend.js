@@ -13,9 +13,9 @@ import Ipfs from 'ipfs'
 import { get, set } from 'idb-keyval';
 import { requestStream } from 'libp2p-stream-helper'
 import createFlipstarterCampaignSite from './createFlipstarterCampaignSite'
-import { SATS_PER_BCH, calculateTotalRecipientMinerFees } from "@ipfs-flipstarter/utils/bitcoinCashUtilities"
 
-import { markdownParser, createFlipstarterClientHtml } from '@ipfs-flipstarter/utils'
+import { bitcoinCashUtilities, markdownParser, createFlipstarterClientHtml } from '@ipfs-flipstarter/utils'
+const { SATS_PER_BCH, calculateTotalRecipientMinerFees } = bitcoinCashUtilities
 
 import EasyMDE from 'easymde'
 import 'easymde/dist/easymde.min.css'
