@@ -19,7 +19,9 @@
   "author": "Jonathan Silverblood",
   "license": "MIT",
   "dependencies": {
-    "@ipfs-flipstarter/client": "file:..\\client",
+    "@ipfs-flipstarter/client": "0.0.1",
+    "@ipfs-flipstarter/create": "0.0.1",
+    "@ipfs-flipstarter/utils": "0.0.1",
     "@toverux/expresse": "^2.4.0",
     "async-mutex": "^0.1.4",
     "better-sqlite3": "^5.4.3",
@@ -30,13 +32,10 @@
     "electrum-cash": "^2.0.1",
     "express": "^4.17.1",
     "express-sse": "^0.5.1",
+    "loader-runner": "^4.2.0",
     "materialize-css": "^1.0.0",
     "moment": "^2.27.0",
     "mustache": "^4.2.0",
     "p-retry": "^4.4.0"
-  },
-  "devDependencies": {
-    "@ipfs-flipstarter/create": "file:..\\create",
-    "eslint": "^6.8.0"
   }
 }

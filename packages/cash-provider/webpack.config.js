@@ -1,6 +1,8 @@
+const webpack = require("webpack")
+const merge = require('../../configs/webpack')
 const path = require("path");
 
-module.exports = {
+module.exports = merge(webpack, {
   entry: {
     client: "./src/provider.js",
   },
@@ -33,4 +35,4 @@ module.exports = {
       },
     ],
   },
-};
+}, true);

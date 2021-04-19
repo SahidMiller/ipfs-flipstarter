@@ -1,6 +1,6 @@
 {
   "name": "@dweb-cash/provider",
-  "version": "1.0.1",
+  "version": "0.0.1",
   "description": "Connecting the web apps to Signup DApp wallet",
   "main": "dist/provider.js",
   "browserslist": [
@@ -31,17 +31,8 @@
   ],
   "author": "p0o",
   "license": "MPL-2.0",
-  "devDependencies": {
-    "@babel/cli": "^7.11.6",
-    "@babel/core": "^7.11.6",
-    "@babel/preset-env": "^7.11.5",
-    "@dweb-cash/wallet": "file:../cash-wallet",
-    "babel-loader": "^8.1.0",
-    "babel-plugin-transform-inline-environment-variables": "^0.4.3",
-    "webpack": "^4.44.2",
-    "webpack-cli": "^3.3.12"
-  },
   "dependencies": {
+    "@dweb-cash/wallet": "0.0.1",
     "axios": "^0.21.1",
     "babel-polyfill": "^6.26.0",
     "emotion": "^10.0.27"

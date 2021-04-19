@@ -6,7 +6,7 @@ const app = require("../server.js");
 const fs = require("fs");
 const path = require("path");
 
-const mustache = require("mustache");
+const { createFlipstarterClientHtml } = require("@ipfs-flipstarter/utils");
 
 // Wrap the campaign request in an async function.
 const home = async function (req, res) {
@@ -16,36 +16,24 @@ const home = async function (req, res) {
   try {
 
     // Redirect to campaign creation page if no campaign was created
-    if (app.freshInstall || app.config.server.redirectHome) {
+    // Redirect to configured url if set
+    if (app.freshInstall || app.config.server.redirectHomeUrl) {
     
-      res.redirect(app.freshInstall ? "/create" : homeRedirect);
+      res.redirect(app.freshInstall ? "/create" : app.config.server.redirectHomeUrl);
     
+    // If campaign is created and no url redirect configured, route to ipfs-flipstarter client
     } else {
 
       // Fetch the campaign data.
-      const campaign = req.app.queries.getCampaign.get({
-        campaign_id: app.config.defaultCampaignId,
-      });
-      const recipients = req.app.queries.listRecipientsByCampaign.all({
-        campaign_id: app.config.defaultCampaignId,
-      });
+      const campaign = getCampaign(req)
 
       if (typeof campaign === "undefined") {
         res.status(404).end()
         return
       }
 
-      const clientIndexPage = fs.readFileSync(
-        path.join(__dirname, "../node_modules/@ipfs-flipstarter/client/dist/static/templates/index.html"),
-        "utf-8"
-      )
-
-      const renderedIndexPage = mustache.render(clientIndexPage, { 
-        title: campaign.title,
-        description: campaign.abstract,
-        url: recipients[0].user_url,
-        image: recipients[0].user_image
-      })
+      const clientIndexPageTemplate = fs.readFileSync(path.join(__dirname, "../node_modules/@ipfs-flipstarter/client/dist/static/templates/index.html"), "utf-8")
+      const renderedIndexPage = await createFlipstarterClientHtml(clientIndexPageTemplate, campaign)
 
       res.write(renderedIndexPage)
       res.end()
@@ -62,6 +50,25 @@ const home = async function (req, res) {
 // Wrap the campaign request in an async function.
 const campaignInformation = async function (req, res) {
 
+  const campaign = getCampaign(req);
+
+  if (typeof campaign === "undefined") {
+    res.status(404).end()
+    return
+  }
+
+  // Send the payment request data.
+  res.status(200).json(campaign);
+
+  // Notify the server admin that a campaign has been requested.
+  req.app.debug.server(
+    `Campaign #${app.config.defaultCampaignId} data delivered to ` + req.ip
+  );
+  req.app.debug.object(campaign);
+};
+
+function getCampaign(req) {
+  
   // Fetch the campaign data.
   const campaign = req.app.queries.getCampaign.get({
     campaign_id: app.config.defaultCampaignId,
@@ -71,7 +78,6 @@ const campaignInformation = async function (req, res) {
   });
 
   if (typeof campaign === "undefined") {
-    res.status(404).end()
     return
   }
 
@@ -81,7 +87,8 @@ const campaignInformation = async function (req, res) {
     address = "//" + address
   }
 
-  const result = {
+  //TODO God willing: on first run, we can hash this and combine with build-time dag nodes to generate a url, God willing.
+  return {
     id: campaign.campaign_id,
     title: campaign.title,
     starts: campaign.starts,
@@ -108,22 +115,15 @@ const campaignInformation = async function (req, res) {
     //Get contributions on front-end
     contributions: []
   }
-
-  // Send the payment request data.
-  res.status(200).json(result);
-
-  // Notify the server admin that a campaign has been requested.
-  req.app.debug.server(
-    `Campaign #${req.params["campaign_id"]} data delivered to ` + req.ip
-  );
-  req.app.debug.object(result);
-};
+}
 
 // Call home when this route is requested.
 router.get("/", home);
 
 router.get("/campaign.json", campaignInformation)
 
-router.use("/static", express.static(path.join(__dirname, "../node_modules/@ipfs-flipstarter/client/dist/static")));
+if (!app.config.server.redirectHomeUrl) {
+  router.use("/static", express.static(path.join(__dirname, "../node_modules/@ipfs-flipstarter/client/dist/static")));
+}
 
 module.exports = router;

@@ -2,36 +2,26 @@
   "name": "@ipfs-flipstarter/create",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "public"
+  ],
   "scripts": {
     "start": "npx serve ./dist -l 55555",
     "build": "npx webpack",
-    "clean": "rm -rf ./dist",
+    "clean": "rm -rf ./dist && rm -rf ./public",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "ipfs": {
-    "root": "./dist",
-    "envVar": "FLIPSTARTER_CREATE_CID"
+    "root": "./public"
   },
   "license": "ISC",
-  "devDependencies": {
-    "cross-env": "^7.0.3",
-    "dag-loader": "file:../dag-loader",
-    "html-webpack-plugin": "^5.3.1",
-    "html-webpack-tags-plugin": "^3.0.0",
-    "remove-files-webpack-plugin": "^1.4.4",
-    "webpack": "^5.30.0",
-    "webpack-cdn-plugin": "^3.3.1",
-    "webpack-cli": "^4.6.0",
-    "webpack-merge": "^5.7.3",
-    "webpack-plugin-serve": "^1.4.1"
-  },
   "dependencies": {
-    "@ipfs-flipstarter/client": "file:../client",
+    "@ipfs-flipstarter/client": "0.0.1",
     "bchaddrjs": "^0.5.2",
     "bootstrap": "^4.6.0",
-    "dag-loader": "^0.0.1",
     "ipfs": "^0.54.4",
     "jquery": "3.5.1",
     "libp2p-stream-helper": "https://github.com/sahidmiller/libp2p-stream-helper.git",

@@ -1,17 +1,22 @@
 {
   "name": "@dweb-cash/wallet",
-  "version": "1.2.1",
+  "version": "0.0.1",
   "description": "",
-  "main": "public/index.html",
+  "private": true, 
+  "main": "dist/index.js",
+  "files": [
+    "public",
+    "dist"
+  ],
   "ipfs": {
-    "root": "./public",
-    "envVar": "DWEB_WALLET_CID"
+    "root": "./public"
   },
   "scripts": {
     "start": "npx serve -l 5050 -s ./public",
     "build": "npx webpack",
     "dev": "npx cross-env SIGNUP_HD_PATH=\"m/44'/145'/0'/0/0\" npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "rm -rf ./dist && rm -rf ./public"
   },
   "author": "p0o",
   "license": "MPL-2.0",
@@ -45,13 +50,5 @@
     "slp-mdm": "0.0.7",
     "slpjs": "^0.27.11",
     "uuid": "^8.3.1"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.11.6",
-    "@babel/preset-env": "^7.11.5",
-    "babel-loader": "^8.1.0",
-    "babel-polyfill": "^6.26.0",
-    "webpack": "^5.30.0",
-    "webpack-cli": "^4.4.0"
   }
 }

@@ -1,3 +1,1 @@
-import initialize from './frontend'
-
-window.initializatonPromise = initialize()
+module.exports = require('create-dag')

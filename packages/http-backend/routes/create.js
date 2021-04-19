@@ -2,10 +2,6 @@
 const express = require("express");
 const router = express.Router();
 const app = require("../server.js");
-const moment = require("moment");
-const fs = require("fs");
-
-const renderer = require("../src/renderer.js");
 
 // Wrap the campaign request in an async function.
 const create = async function (req, res) {
@@ -19,11 +15,11 @@ const create = async function (req, res) {
     apiUrl = "//" + apiUrl
   }
 
-  const redirectUrl = `${req.app.config.ipfs.redirectUrlBase}?api_address=${apiUrl}&api_type=https` 
+  const redirectUrl = `${req.app.config.server.redirectCreateUrlBase}?api_address=${apiUrl}&api_type=https` 
   res.redirect(redirectUrl);
 
   // Notify the server admin that a campaign has been requested.
-  req.app.debug.server("Create page delivered to " + req.ip);
+  req.app.debug.server("Create page delivered to " + req.ip, redirectUrl);
 };
 
 const initCapampaign = async function (req, res) {
