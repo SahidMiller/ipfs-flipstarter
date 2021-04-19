@@ -216,3 +216,21 @@ a:hover, .btn-link:hover {
 .clearfix {
   clear: both;
 }
+
+.full-screen { 
+  position:fixed; 
+  left:0; 
+  width:100%; 
+  top:0; 
+  height:100%; 
+}
+
+.scroll-lock { 
+  overflow: hidden; 
+}
+
+#preview-content { 
+  display: block; 
+  width:100%; 
+  height:100%; 
+}

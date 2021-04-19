@@ -7,14 +7,6 @@ import "moment/locale/zh-cn.js"
 import "moment/locale/ja.js"
 import "moment/locale/es.js"
 
-// Load the marked library to parse markdown text,
-import unified from "unified"
-import markdown from 'remark-parse'
-import remark2rehype from 'remark-rehype'
-import htmlInMarkdown from 'rehype-raw'
-import githubMarkdown from 'remark-gfm'
-import html from 'rehype-stringify'
-
 // Load and initialize the DOMPurify library to ensure safety for parsed markdown.
 import createDOMPurify from "dompurify"
 const DOMPurify = createDOMPurify(window)
@@ -28,6 +20,9 @@ import { Buffer } from 'buffer'
 
 import Signup from '@dweb-cash/provider'
 import { SATS_PER_BCH, calculateTotalContributorMinerFees, calculateTotalRecipientMinerFees  } from "@ipfs-flipstarter/utils/bitcoinCashUtilities"
+
+// Load the marked library to parse markdown text,
+import { markdownParser } from "@ipfs-flipstarter/utils"
 
 const signup = new Signup.cash({});
 const bitbox = new BITBOX()
@@ -174,7 +169,7 @@ class flipstarter {
 
     //Initialize campaign variables
     this.campaign.requestedSatoshis = getRequestedSatoshis(this.campaign)
-    this.campaign.campaignMinerFee = calculateCampaignerMinerFee(this.campaign.recipients.length)
+    this.campaign.campaignMinerFee = calculateTotalRecipientMinerFees(this.campaign.recipients.length, TARGET_FEE_RATE)
 
     //TODO Error if nothing is set?
     if (this.campaign.apiType === "ipfs") {
@@ -202,6 +197,7 @@ class flipstarter {
     this.updateCampaignProgressCounter();
 
     // Add each recipient to the fundraiser.
+    document.getElementById("recipientList").innerHTML = ""
     this.campaign.recipients.forEach(recipient => {
       const amount = recipient.satoshis / SATS_PER_BCH
       const recipientAmount = Number(amount).toLocaleString();
@@ -553,14 +549,8 @@ class flipstarter {
     this.currencyValue = this.currencyRates.find((obj) => obj.code === currencies[languageCode]).rate;
 
     // Print out the campaign texts.
-    const processor = unified()
-      .use(githubMarkdown)
-      .use(markdown)
-      .use(remark2rehype, {allowDangerousHtml: true})
-      .use(htmlInMarkdown)
-      .use(html)
-    document.getElementById("campaignAbstract").innerHTML = DOMPurify.sanitize(await processor.process(this.campaign.descriptions[languageCode].abstract));
-    document.getElementById("campaignDetails").innerHTML = DOMPurify.sanitize(await processor.process(this.campaign.descriptions[languageCode].proposal));
+    document.getElementById("campaignAbstract").innerHTML = DOMPurify.sanitize(await markdownParser(this.campaign.descriptions[languageCode].abstract));
+    document.getElementById("campaignDetails").innerHTML = DOMPurify.sanitize(await markdownParser(this.campaign.descriptions[languageCode].proposal));
     
     //TODO God willing: find better way to remove ugly disabled css
     document.querySelectorAll(".task-list-item input[checked]").forEach(i => i.disabled = false)

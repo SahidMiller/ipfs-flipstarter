@@ -1,0 +1,21 @@
+.task-list-item::marker {
+	content: none !important
+}
+
+.task-list-item input[type="checkbox"] {
+	outline: 5px auto #2bb724;
+    opacity: 1;
+    position: inherit;
+}
+
+code {
+	color: green
+}
+
+pre { 
+	background-color: #e8e8e8;
+}
+
+li.task-list-item > ul.contains-task-list {
+    margin-left: 30px !important;
+}
