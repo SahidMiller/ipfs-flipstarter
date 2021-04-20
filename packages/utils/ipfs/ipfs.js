@@ -1,19 +1,19 @@
-import { collect } from 'streaming-iterables'
-import { toDagNodeFile, toDagNodeDirectory } from './dag'
-import CID from 'cids'
+const { collect } = require('streaming-iterables')
+const { toDagNodeFile, toDagNodeDirectory } = require('./dag')
+const CID = require('cids')
 
-export async function cat(ipfs, path) {
+async function cat(ipfs, path) {
 	const [data] = (await collect(ipfs.cat(path)))
 	return data
 }
 
-export async function genKey(ipfs, keyName) {
+async function genKey(ipfs, keyName) {
 	const keys = await ipfs.key.list()
 	const foundKey = keys.find(key => key.name === keyName)
 	return foundKey || await ipfs.key.gen(keyName)
 }
 
-export async function uploadFile(ipfs, name, data) {
+async function uploadFile(ipfs, name, data) {
 	const encoded = new TextEncoder().encode(data)
 	const file = toDagNodeFile(encoded)
 	const info = await ipfs.dag.put(file, { format: 'dag-pb', hashAlg: 'sha2-256' })
@@ -21,9 +21,16 @@ export async function uploadFile(ipfs, name, data) {
 	return { Hash: hash, Tsize: file.size, Name: name }
 }
 
-export async function uploadDirectory(ipfs, name, links) {
+async function uploadDirectory(ipfs, name, links) {
 	const directory = toDagNodeDirectory(links)
 	const info = await ipfs.dag.put(directory, { format: 'dag-pb', hashAlg: 'sha2-256' })
 	const hash = new CID(info.multihash).toBaseEncodedString()
 	return { Hash: hash, Tsize: directory.size, Name: name }
+}
+
+module.exports = {
+	cat,
+	genKey,
+	uploadFile,
+	uploadDirectory
 }
