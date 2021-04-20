@@ -17,7 +17,7 @@
     "build": "npx webpack",
     "dev": "npx cross-env SIGNUP_HD_PATH=\"m/44'/145'/0'/0/0\" npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "clean": "rm -rf ./dist && rm -rf ./public"
+    "clean": "rm -rf ./dist && rm -rf ./public/js && rm -rf ./public/images"
   },
   "author": "p0o",
   "license": "MPL-2.0",
