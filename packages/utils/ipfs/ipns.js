@@ -1,10 +1,10 @@
-import ipns from 'ipns'
-import IpfsHttpClient from 'ipfs-http-client'
-import last from 'it-last'
-import multihash from 'multihashes'
-import uint8ArrayToString from 'uint8arrays/to-string'
-import pRetry from 'p-retry'
-import CID from 'cids'
+const ipns = require('ipns')
+const IpfsHttpClient = require('ipfs-http-client')
+const last = require('it-last')
+const multihash = require('multihashes')
+const uint8ArrayToString = require('uint8arrays/to-string')
+const pRetry = require('p-retry')
+const CID = require('cids')
 
 const preloadNodes = [
   "//node0.preload.ipfs.io", 
@@ -13,11 +13,11 @@ const preloadNodes = [
   "//node3.preload.ipfs.io"
 ]
 
-export const unmarshalIpnsMessage = (message) => {
+const unmarshalIpnsMessage = (message) => {
 	return ipns.unmarshal(message.data)
 }
 
-export function getSerializedRecordKey(id) {
+function getSerializedRecordKey(id) {
   const origMh = new CID(id).multihash
   const base58mh = new CID(1, 'libp2p-key', origMh, "base58btc").multihash
   const key = ipns.getIdKeys(base58mh).routingKey.uint8Array()
@@ -25,12 +25,11 @@ export function getSerializedRecordKey(id) {
   return "/record/" + serialized;
 }
 
-export async function resolveIPNSKey(ipfs, key) {
+async function resolveIPNSKey(ipfs, key) {
   return await last(ipfs.name.resolve(key, { stream: false }));
 }
 
-
-export async function startRemoteListeners(id) {
+async function startRemoteListeners(id) {
 
   return await Promise.all(preloadNodes.map(endpoint => {
       
@@ -44,7 +43,7 @@ export async function startRemoteListeners(id) {
     }))
 }
 
-export async function updateIPNS(ipfs, key, cid) {
+async function updateIPNS(ipfs, key, cid) {
 
   try {
     
@@ -86,4 +85,12 @@ export async function updateIPNS(ipfs, key, cid) {
 
     debugger
   }
+}
+
+module.exports = {
+  unmarshalIpnsMessage,
+  getSerializedRecordKey,
+  resolveIPNSKey,
+  startRemoteListeners,
+  updateIPNS
 }

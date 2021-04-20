@@ -36,11 +36,14 @@ async function deploy(log, { verbose = true, mode = "production" } = {}) {
 
   const packages = await loadPackages();
 
+  const excludePackages = JSON.parse(process.env.FLIPSTARTER_EXCLUDE_BUILD || "[]")
+
   await iter.batched(packages)(async (package, log) => {
     const packageJson = require(package.manifestLocation)
 
     //Run build on all the packages not deployed on ipfs yet, God willing.
-    if (package.scripts.build && !changes.isBuilt(package)(BUILT_FLAG + ":" + mode)) {
+    const excludePackage = excludePackages.indexOf(package.name) !== -1
+    if (package.scripts.build && !changes.isBuilt(package)(BUILT_FLAG + ":" + mode) && !excludePackage) {
         
         const command = `npx cross-env NODE_ENV=${mode} npm run build`
         

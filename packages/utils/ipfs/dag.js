@@ -1,21 +1,21 @@
-import importer from 'ipfs-unixfs-importer'
-import IPLD from 'ipld'
-import inMemory from 'ipld-in-memory'
-import { DAGNode } from 'ipld-dag-pb'
-import UnixFS from 'ipfs-unixfs'
-import multicodec from 'multicodec'
+const importer = require('ipfs-unixfs-importer')
+const IPLD = require('ipld')
+const inMemory = require('ipld-in-memory')
+const { DAGNode } = require('ipld-dag-pb')
+const UnixFS = require('ipfs-unixfs')
+const multicodec = require('multicodec')
 
-export const toDagNodeFile = (data) => {
+const toDagNodeFile = (data) => {
 	const file = new UnixFS({ type: 'file', data }).marshal();
 	return new DAGNode(file);
 }
 
-export const toDagNodeDirectory = (links) => {
+const toDagNodeDirectory = (links) => {
 	const dir = new UnixFS({ type: 'directory' }).marshal();
 	return new DAGNode(dir, links)
 }
 
-export const hashData = async (content, options) => {
+const hashData = async (content, options) => {
   options = options || {}
   options.onlyHash = true
 
@@ -32,7 +32,7 @@ export const hashData = async (content, options) => {
   }
 }
 
-export const hashNode = async (node, options) => {
+const hashNode = async (node, options) => {
 	const ipld = await inMemory(IPLD)
 	const { format, cidVersion, hashAlg } = options
 
@@ -46,4 +46,11 @@ export const hashNode = async (node, options) => {
 		cidVersion: 0,
 		onlyHash: true
 	})
+}
+
+module.exports = {
+	hashNode,
+	hashData,
+	toDagNodeDirectory,
+	toDagNodeFile
 }
