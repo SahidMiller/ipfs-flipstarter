@@ -18412,10 +18412,10 @@ webpack-cli@^4.6.0:
     v8-compile-cache "^2.2.0"
     webpack-merge "^5.7.3"
 
-webpack-dag-entry-plugin@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/webpack-dag-entry-plugin/-/webpack-dag-entry-plugin-0.0.1.tgz#925647efbba4739ee56297b76ed07e56f77dc157"
-  integrity sha512-n5oOCtbaudZ3AX3U0jhWA9MuTABLG2jw4x/PRYN2Vs4SsDinT15/MNEpmV59ThxRgqpHIzEjPdQfKNwBdut25w==
+webpack-dag-entry-plugin@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/webpack-dag-entry-plugin/-/webpack-dag-entry-plugin-0.0.2.tgz#d008c3ee8dbba7d8e34cad7304aef232761877ba"
+  integrity sha512-/L6IY7hS3634eT6tLPE7nTWfygMFjWolLpSeFjMnNCOW9y3Lj4I05r47GWh1Swj42ffJXAFKbcPm1kHE2J3OLA==
   dependencies:
     dag-loader "^0.0.4"
 
