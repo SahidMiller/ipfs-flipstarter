@@ -1,34 +1,54 @@
 {
-	"name": "@ipfs-flipstarter/client",
-	"version": "0.0.1",
-	"description": "",
-	"main": "dist/index.js",
-	"author": "",
-	"license": "ISC",
-	"files": [
-		"src",
-		"dist",
-		"public"
-	],
-	"scripts": {
-		"start": "npx serve ./dist -l 55554",
-		"build": "npx webpack",
-		"dev": "npx cross-env FLIPSTARTER_INDEX_HTML='../../tests/assets/index.html' FLIPSTARTER_CAMPAIGN_JSON='../../tests/assets/campaign.json' npm run build",
-		"clean": "rm -rf ./dist && rm -rf ./public"
-	},
-	"ipfs": {
-		"root": "./public"
-	},
-	"dependencies": {
-		"@dweb-cash/provider": "0.0.1",
-		"bitbox-sdk": "^8.11.2",
-		"canvas-confetti": "^1.4.0",
-		"dompurify": "^2.2.7",
-		"ipfs": "^0.54.4",
-		"libp2p-stream-helper": "https://github.com/sahidmiller/libp2p-stream-helper.git",
-		"moment": "^2.29.1",
-		"mustache": "^4.2.0",
-		"p-retry": "^4.5.0",
-		"p-timeout": "^4.1.0"
-	}
+  "name": "@ipfs-flipstarter/client",
+  "version": "0.0.1",
+  "description": "",
+  "main": "dist/index.js",
+  "author": "",
+  "license": "ISC",
+  "jest": {
+    "transform": {
+      "^.+\\.js?$": "babel-jest"
+    },
+    "automock": false,
+    "rootDir": ".",
+    "noStackTrace": false,
+    "collectCoverage": false,
+    "moduleFileExtensions": [
+      "js"
+    ],
+    "unmockedModulePathPatterns": [
+      "<rootDir>/node_modules/moment"
+    ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/node_modules/"
+    ]
+  },
+  "files": [
+    "src",
+    "dist",
+    "public"
+  ],
+  "scripts": {
+    "start": "npx serve ./dist -l 55554",
+    "build": "npx webpack",
+    "dev": "npx cross-env NODE_ENV=development FLIPSTARTER_INDEX_HTML='../../tests/assets/index.html' FLIPSTARTER_CAMPAIGN_JSON='../../tests/assets/campaign.json' npm run build",
+    "clean": "rm -rf ./dist && rm -rf ./public",
+    "test": "node ..\\..\\node_modules\\jest\\bin\\jest.js"
+  },
+  "ipfs": {
+    "root": "./public"
+  },
+  "dependencies": {
+    "@dweb-cash/provider": "0.0.1",
+    "bitbox-sdk": "^8.11.2",
+    "canvas-confetti": "^1.4.0",
+    "dompurify": "^2.2.7",
+    "ipfs": "^0.54.4",
+    "libp2p-stream-helper": "https://github.com/sahidmiller/libp2p-stream-helper.git",
+    "moment": "^2.29.1",
+    "mustache": "^4.2.0",
+    "p-retry": "^4.5.0",
+    "p-timeout": "^4.1.0",
+    "idb-keyval": "^5.0.5"
+  }
 }

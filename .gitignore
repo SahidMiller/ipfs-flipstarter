@@ -6,6 +6,7 @@ app/static/css/style.css
 database.db
 database.db-journal
 configs/server-config.json
+coverage
 
 lerna-debug.log
 .lerna/
