@@ -21,30 +21,24 @@ export default class ProgressBar {
     }
 
     init() {
+        this.updateCurrentRequestedAmount({ recipients: [] })
+        
+        const self = this
+        this.campaignService.subscribe((campaign) => {
 
-        let initialized = false
-        if (this.campaignService.campaign) {
-            initialized = true
-            this.updateCurrentRequestedAmount(this.campaignService.campaign)
-            this.updateTotalRaisedProgressBar(this.campaignService.campaign)
-        } else {
-            
-            this.updateCurrentRequestedAmount({ recipients: [] })
-        }
+            self.updateCurrentRequestedAmount(campaign)
+            self.updateTotalRaisedProgressBar(campaign)
+        })
 
-        this.campaignService.on('update', ((campaign) => {
+        this.donationService.on('update', (donation) => {
+            const campaign = self.campaignService.getCampaign()
 
-            if (!initialized) {
-                initialized = true
-                this.updateCurrentRequestedAmount(campaign)
+            if (campaign && campaign.requestedSatoshis) {
+                
+                const sats = donation.satoshis || 0
+                self.updateCurrentContributionBar(campaign, sats / campaign.requestedSatoshis)
             }
-
-            this.updateTotalRaisedProgressBar(campaign)
-
-        }).bind(this))
-
-        //TODO God willing: simply use the donation input itself
-        this.donationService.on('update', this.updateCurrentContributionBar.bind(this))
+        })
     }
 
     updateTotalRaisedProgressBar(campaign) {

@@ -31,7 +31,7 @@
   "scripts": {
     "start": "npx serve ./dist -l 55554",
     "build": "npx webpack",
-    "dev": "npx cross-env NODE_ENV=development FLIPSTARTER_INDEX_HTML='../../tests/assets/index.html' FLIPSTARTER_CAMPAIGN_JSON='../../tests/assets/campaign.json' npm run build",
+    "dev": "npx cross-env NODE_ENV=development FLIPSTARTER_INDEX_HTML='../../tests/assets/index.html' FLIPSTARTER_CAMPAIGN_JSON='../../tests/assets/campaign.json' npm run build --",
     "clean": "rm -rf ./dist && rm -rf ./public",
     "test": "node ..\\..\\node_modules\\jest\\bin\\jest.js"
   },

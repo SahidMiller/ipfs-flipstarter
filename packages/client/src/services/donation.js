@@ -1,9 +1,11 @@
 import EventEmitter from 'events'
 
 export default class DonationService extends EventEmitter {
-    constructor({ name, comment, satoshis }) {
+    constructor(donation) {
+        super()
+        const { name = "", comment = "", satoshis = 0 } = donation || {}
         //TODO God willing: set satoshis to minimum
-        this.donation = { name = "", comment = "", satoshis = 0 }
+        this.donation = { name, comment, satoshis }
     }
 
     getDonation() {
