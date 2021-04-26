@@ -1,0 +1,72 @@
+<fieldset id="donateArea">
+    <div id="donateStatus"></div>
+    <div id="donateFormContainer">
+        <div id="donateForm">
+            <div>
+                <input type="range" min="0" max="100" value="0" step="0.20" id="donationSlider">
+            </div>
+            <div>
+                <button id="donateButton">
+                    <span id="donateText" data-string="donateText"></span>
+                    <span id="donateAmount"></span>
+                </button>
+            </div>
+        </div>
+        
+        <div id="donationInputContainer">
+            <div id="providerSection">
+                <div>
+                    <div>
+                        <div>
+                            <div>
+                                <input id="contributionName" type="text" maxlength="24">
+                                <label for="contributionName" data-string="usernameLabel"></label>
+                            </div>
+                
+                            <div>
+                                <input id="contributionComment" type="text" maxlength="120">
+                                <label for="contributionComment" data-string="commentLabel"></label>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button id="signupDonateButton">
+                        <span>Contribute using SignUp</span>
+                        </button>
+                    </div>
+                    <div>
+                        <button id="electrumDonateButton">
+                        <span>Contribute using Electrum</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="electrumSection">
+                <div>
+                    <div>
+                        <textarea rows="5" id="template" name="template"></textarea>
+                        <button id="copyTemplateButton" data-string="copyButton"></button>
+                    </div>
+                    <div>
+                        <small data-string="instructionsLabel"></small>
+                        <p id="instructions" data-string="instructions"
+                        ></p>
+                        <div>
+                            <a id="downloadButton" href="https://gitlab.com/flipstarter/flipstarter-electron-cash/uploads/ec6b5a7518801c4a278128ac4f296607/flipstarter-1.3.zip">
+                                <span data-string="downloadText"></span>
+                            </a>
+                            <a id="linkInstructionsButton" target="_blank" href="https://read.cash/@flipstarter/how-to-support-a-flipstarter-campaign-f27240d9">
+                                <span data-string="instructionLink"></span>
+                            </a>
+                        </div>
+                    </div>
+                    <div>
+                        <small data-string="commitLabel"></small>
+                        <textarea rows="5" id="commitment" name="commitment" data-placeholder="PasteHere"></textarea>
+                        <button id="commitTransaction" disabled="disabled" data-string="commitButton"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</fieldset>
