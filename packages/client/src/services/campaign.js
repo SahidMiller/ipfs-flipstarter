@@ -45,9 +45,14 @@ class Campaign {
 
 export default class CampaignService extends EventEmitter {
     
-    constructor(targetFeeRate = 1) {
+    constructor({ targetFeeRate = 1 }) {
         super()
         this.targetFeeRate = targetFeeRate
+        this.campaign = undefined
+    }
+
+    getCampaign() {
+        return this.campaign
     }
 
     async init() {
@@ -79,7 +84,7 @@ export default class CampaignService extends EventEmitter {
     async contribute(commitmentObject) {
         return await this.server.contribute(commitmentObject)
     }
-    
+
     subscribe(cb) {
         if (this.campaign) {
             cb(this.campaign)

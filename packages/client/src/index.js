@@ -11,6 +11,7 @@ import ProgressBar from './components/progress-bar'
 import CampaignService from "./services/campaign.js"
 import TranslationService from './services/translations.js'
 import EventEmitter from 'events'
+import DonationService from './services/donation.js'
 
 const bitbox = new BITBOX()
 
@@ -41,7 +42,7 @@ class flipstarter {
     const language = window.navigator.language.slice(0, 2);
 
     const translationService = new TranslationService(language)
-    const donationService = new EventEmitter()
+    const donationService = new DonationService()
 
     new Celebration({
       applause: document.getElementById("applause")
@@ -115,7 +116,7 @@ class flipstarter {
         // }
       ]
 
-    }, campaignService, translationService)
+    }, campaignService, translationService, donationService)
 
     donationInput.init()
     contributionsList.init()

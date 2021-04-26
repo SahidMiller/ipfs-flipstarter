@@ -116,7 +116,7 @@ export default class DonationInput {
 
     if (this.campaignService) {
 
-      this.campaignService.subscribe('update', ((campaign) => {
+      this.campaignService.subscribe(((campaign) => {
 
         const requestedSatoshis = campaign.requestedSatoshis + campaign.minerFee
         const committedSatoshis = (campaign.committedSatoshis || 0) - (campaign.totalCommittedMinerFees || 0)
@@ -199,7 +199,7 @@ export default class DonationInput {
     } else {
       
       //Add per contribution fee to donation amount, God willing
-      donationAmount = this.contributorMinerFees + Math.ceil(this.campaignTotalAmountLeft * percentage);
+      donationAmount = (this.contributorMinerFees || 0) + Math.ceil((this.campaignTotalAmountLeft || 0) * percentage);
     }
 
     if (Number(event.target.value) >= 100) {
