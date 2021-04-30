@@ -1,6 +1,9 @@
 // Enable support for time management.
 const moment = require("moment");
 
+const fs = require("fs");
+const path = require("path");
+
 // Load the bitbox library.
 const bitboxSDK = require("bitbox-sdk");
 const bitbox = new bitboxSDK.BITBOX();
@@ -46,30 +49,29 @@ const app = express();
 const cors = require("cors");
 
 // Add support for parsing POST bodies.
-const bodyParser = require("body-parser");
-const urlencodedParser = bodyParser.urlencoded({ extended: false });
+const { urlencoded, json } = require("body-parser");
 
 // Wrap application setup in order to allow async/await.
 const setup = async function () {
   // Enable parsing of both JSON and URL-encoded bodies.
-  app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(bodyParser.json());
+  app.use(urlencoded({ extended: true }));
+  app.use(json());
   
   // Read the package information file.
-  app.software = require("./package.json");
+  app.software = require("../package.json");
 
   // Load the configuration file.
   await require("./config.js")(app);
 
   // Load application modules.
-  await require("./src/logging.js")(app);
+  await require("./logging.js")(app);
 
   // Log config immediately
   app.debug.object(app.config)
 
-  await require("./src/storage.js")(app);
-  await require("./src/network.js")(app);
-  await require("./src/events.js")(app);
+  await require("./storage.js")(app);
+  await require("./network.js")(app);
+  await require("./events.js")(app);
 
   module.exports = app;
 
@@ -87,10 +89,16 @@ const setup = async function () {
   app.set("json spaces", 2);
 
   // Create routes from separate files.
-  app.use("/submit", require("./routes/submit.js"));
-  app.use("/", require("./routes/home.js"));
-  app.use("/create", urlencodedParser, require("./routes/create.js"));
-  app.use("/events", require("./routes/events.js"));
+  app.use("/submit", require("../routes/submit.js"));
+  app.use("/", require("../routes/home.js"));
+  
+  const clientRoot = path.dirname(require.resolve("@ipfs-flipstarter/client/package.json"))
+  if (!app.config.server.redirectHomeUrl) {
+    router.use("/static", express.static(path.join(clientRoot, "/public/static")));
+  }
+
+  app.use("/create", require("../routes/create.js"));
+  app.use("/events", require("../routes/events.js"));
 
   // Initialize an empty set of scripthashes that we are subscribed to.
   app.subscribedScriphashes = {};
@@ -306,14 +314,5 @@ const setup = async function () {
   //
   // app.use('/status', require('./routes/status.js'));
 
-  // Listen to incoming connections on port X.
-  app.listen(app.config.server.port, "0.0.0.0");
-
-  // Notify user that the service is ready for incoming connections.
-  app.debug.status(
-    "Listening for incoming connections on port " + app.config.server.port
-  );
+  return app
 };
-
-// Initialize the server.
-setup();

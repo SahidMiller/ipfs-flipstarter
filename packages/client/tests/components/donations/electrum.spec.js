@@ -5,8 +5,6 @@ global.TextEncoder = TextEncoder
 
 const EventEmitter = require('events')
 
-jest.mock('../../../src/utils/base64')
-
 describe("electrum donations", () => {
     const { default: ElectrumDonation } = require('../../../src/components/donations/electrum');
 
@@ -44,9 +42,13 @@ describe("electrum donations", () => {
         const campaignService = new EventEmitter()
 
         campaignService.campaign = testHttpCampaign
+        campaignService.subscribe = (cb) => {
+            campaignService.on("update", cb)
+            cb(campaignService.campaign)
+        }
 
         const donationService = new EventEmitter()
-        
+
         new ElectrumDonation({
             contributionName: document.getElementById("contributionName"),
             contributionComment: document.getElementById("contributionComment"),

@@ -9,7 +9,6 @@
   "scripts": {
     "lint": "eslint .",
     "prettier": "npx prettier@2.0.5 '**/*.js' --write",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "debug": "npx cross-env FLIPSTARTER_API_AUTH=\"pending-contributions\" DEBUG=\"flipstarter:*\" node --use-strict server.js",
     "verbose": "npx cross-env FLIPSTARTER_API_AUTH=\"pending-contributions\" DEBUG=\"flipstarter:*, -flipstarter:object\" node --use-strict server.js",
     "basic": "npx cross-env FLIPSTARTER_API_AUTH=\"pending-contributions\" DEBUG=\"flipstarter:status, flipstarter:server\" node --use-strict server.js",

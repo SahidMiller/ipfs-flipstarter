@@ -422,7 +422,7 @@ function setCampaignFormValues(campaign) {
     $(`#amount\\[${i}\\]`).val(recipient.satoshis ? (recipient.satoshis / SATS_PER_BCH).toFixed(8) : 0) // to bch
   })
 
-  const startDate = campaign.starts ? moment.unix(campaign.starts) : moment.unix()
+  const startDate = campaign.starts ? moment.unix(campaign.starts) : moment().unix()
   const endDate = campaign.expires ? moment.unix(campaign.expires) : moment().add(1, 'days').unix()
   setDates(startDate, endDate)
 

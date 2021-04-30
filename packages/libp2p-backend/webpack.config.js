@@ -34,7 +34,7 @@ module.exports = merge(webpack, {
             }
         }),
         new HtmlWebpackPlugin({
-            template: '../../views/server.html',
+            template: './views/server.html',
             chunks: ["index"],
             filename: 'index.html',
             inject: 'body',

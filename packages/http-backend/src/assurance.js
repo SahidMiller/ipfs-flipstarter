@@ -1,6 +1,5 @@
 // Load the bitbox library.
-const bitboxSDK = require("bitbox-sdk");
-const bitbox = new bitboxSDK.BITBOX();
+const { BITBOX } = require("bitbox-sdk");
 
 class javascriptUtilities {
   /**
@@ -188,6 +187,8 @@ class assuranceContract {
 
     // initialize an empty storage for inputs.
     this.inputs = [];
+
+    this.bitbox = new BITBOX();
   }
 
   /**
@@ -198,7 +199,7 @@ class assuranceContract {
    */
   addOutput(satoshis, address) {
     // Check if the provided address is properly encoded.
-    if (!bitbox.Address.isCashAddress(address)) {
+    if (!this.bitbox.Address.isCashAddress(address)) {
       throw `Cannot add output, provided address '${address}' does not use the valid CashAddr encoding.`;
     }
 
@@ -370,14 +371,6 @@ class assuranceContract {
     this.inputs.push(commitment);
   }
 
-  validateCommitment() {
-    // TODO: Build this feature.
-    // const sighashDigest = this.assembleSighashDigest();
-    // const signatureStatus = this.validateSignature();
-    // Fetch commitment input value.
-    // Compare committed value to requested value.
-  }
-
   assembleSighashDigest(
     previousTransactionHash,
     previousTransactionOutputIndex,
@@ -417,7 +410,7 @@ class assuranceContract {
     ]);
     const value = previousTransactionOutputValue;
     const nSequence = Buffer.from("FFFFFFFF", "hex");
-    const hashOutputs = bitbox.Crypto.hash256(
+    const hashOutputs = this.bitbox.Crypto.hash256(
       Buffer.concat(transactionOutpoints)
     );
     const nLocktime = Buffer.from("00000000", "hex");
@@ -439,7 +432,7 @@ class assuranceContract {
       nLocktime,
       sighashType,
     ]);
-    const sighashDigest = bitbox.Crypto.hash256(sighashMessage);
+    const sighashDigest = this.bitbox.Crypto.hash256(sighashMessage);
 
     //
     return sighashDigest;
@@ -523,33 +516,6 @@ class assuranceContract {
     return Buffer.concat(commitmentBuffers);
   }
 
-  serializeCommitment(commitment) {
-    //
-    const previousTransactionHash = javascriptUtilities.reverseBuf(
-      Buffer.from(commitment.previousTransactionHashReversed, "hex")
-    );
-
-    //
-    let previousTransactionOutputIndex = Buffer.allocUnsafe(4);
-    previousTransactionOutputIndex.writeUInt32LE(
-      commitment.previousTransactionOutputIndex
-    );
-
-    //
-    let unlockScript = Buffer.from(commitment.unlockScript, "hex");
-
-    //
-    let sequenceNumber = Buffer.from("ffffffff", "hex");
-
-    //
-    return this.serializeInput(
-      previousTransactionHash,
-      previousTransactionOutputIndex,
-      unlockScript,
-      sequenceNumber
-    );
-  }
-
   /**
    * Creates a serialized input part to be used in a raw transaction.
    *
@@ -581,108 +547,18 @@ class assuranceContract {
     ]);
   }
 
-  /**
-   * Creates a serialized output part to be used in a raw transaction.
-   *
-   * @param address    the cashaddr encoded recipient of the satoshis.
-   * @param satoshis   the number of satoshis to send to the address.
-   *
-   * @returns a raw serialized output structure as a buffer.
-   */
-  serializeOutput(address, satoshis) {
-    // Check if the provided address is properly encoded.
-    if (!bitbox.Address.isCashAddress(address)) {
-      // Return false to indicate that we only accept cashaddr encoding.
-      return false;
-    }
-
-    // Get the lockscript from the address.
-    const lockscript = this.getLockscriptFromAddress(address);
-
-    // Declare a storage for the value.
-    let value = Buffer.alloc(8);
-
-    // Write the value to to the storage.
-    // FIXME: This should be 64-bit, but due to javascript limitations and webpacks buffer implementation we don't have the 64bit function available.
-    value.writeUInt32LE(satoshis);
-
-    // Create a lockscript length statement.
-    const lockscriptLength = bitcoinCashUtilities.varInt(lockscript.byteLength);
-
-    // Return the serialized output.
-    return Buffer.concat([value, lockscriptLength, lockscript]);
-  }
-
-  /**
-   * Helper function to structure a request object from parts.
-   *
-   * @param requestSatoshis     integer number of satoshis to commit to the commitment outputs.
-   * @param requestExpiration   unix timestamp when the request expires and requested funds should be reclaimed.
-   * @param requestOutputs      array of objects containing a `satoshis` integer and cashaddr encoded `address` string.
-   * @param requestData         optional object with properties explaining the intent of the request.
-   *
-   * @returns a structured request object.
-   */
-  static serializeRequest(
-    requestSatoshis,
-    requestExpiration,
-    requestOutputs,
-    requestData = {}
-  ) {
-    // Assemble the request object.
-    let requestObject = {
-      outputs: [],
-      data: requestData,
-      donation: { amount: Number(requestSatoshis) },
-      expires: requestExpiration,
-    };
-
-    for (const outputIndex in requestOutputs) {
-      const outputValue = assuranceContract.decodeOutputValue(
-        requestOutputs[outputIndex].value
-      );
-      const outputAddress = assuranceContract.getAddressFromLockscript(
-        requestOutputs[outputIndex].locking_script
-      );
-
-      requestObject.outputs.push({
-        value: outputValue,
-        address: outputAddress,
-      });
-    }
-
-    // Return the request object.
-    return btoa(JSON.stringify(requestObject));
-  }
-
-  /**
-   * Helper function to reverse request and commitment serialization.
-   *
-   * @param JsonBase64    an object that has been encoded first in JSON notation, then as base64.
-   *
-   * @returns the parsed object.
-   */
-  static unserialize(JsonBase64) {
-    // Return the unserialized and parsed json object.
-    return JSON.parse(atob(JsonBase64));
-  }
-
-  static getAddressFromLockscript(lockscript) {
-    return bitbox.Address.fromOutputScript(lockscript);
-  }
-
   getLockscriptFromAddress(address) {
     // Check if the provided address is properly encoded.
-    if (!bitbox.Address.isCashAddress(address)) {
+    if (!this.bitbox.Address.isCashAddress(address)) {
       // Return false to indicate that we only accept cashaddr encoding.
       return false;
     }
 
     // Derive the address hash.
-    const hash160 = Buffer.from(bitbox.Address.cashToHash160(address), "hex");
+    const hash160 = Buffer.from(this.bitbox.Address.cashToHash160(address), "hex");
 
     // Detect address type.
-    const type = bitbox.Address.detectAddressType(address);
+    const type = this.bitbox.Address.detectAddressType(address);
 
     // If the type is a public key hash..
     if (type === "p2pkh") {

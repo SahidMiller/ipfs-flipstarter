@@ -16,7 +16,8 @@ describe("progress bar", () => {
         contributions: [],
         commitmentCount: 0,
         committedSatoshis: 0,
-        requestedSatoshis: 1000
+        requestedSatoshis: 1000,
+        minerFee: 79
     }
 
     test("starts bar at 0% with no contributions and increase to next when contribution is accepted", () => {
@@ -38,6 +39,12 @@ describe("progress bar", () => {
         //Run src file
         const campaignService = new EventEmitter()
         campaignService.campaign = testHttpCampaign
+        campaignService.getCampaign = jest.fn().mockImplementation(() => campaignService.campaign)
+        
+        campaignService.subscribe = (cb) => {
+            campaignService.on("update", cb)
+            cb(campaignService.campaign)
+        }
 
         const donationService = new EventEmitter()
 
@@ -52,14 +59,14 @@ describe("progress bar", () => {
         expect($("#campaignRequestAmount").text()).toEqual("0.00001079")
         expect($("#campaignProgressBar")[0].style.width).toEqual("0.00%")
 
-        const updatedCampaign = { 
+        campaignService.campaign = { 
             ...testHttpCampaign,
             contributions: [{ satoshis: 500 }],
             commitmentCount: 1,
             committedSatoshis: 500
         }
 
-        campaignService.emit('update', updatedCampaign)
+        campaignService.emit('update', campaignService.campaign)
 
         expect($("#campaignContributionAmount").text()).toEqual("0.00000500")
         expect($("#campaignRequestAmount").text()).toEqual("0.00001079")
@@ -69,7 +76,8 @@ describe("progress bar", () => {
             ((.00000500 / .00001079) * 100).toFixed(2) + "%")
         expect($("#campaignContributionBar")[0].style.width).toEqual("")
 
-        donationService.emit("update", updatedCampaign, 10)
+        donationService.emit("update", { satoshis: (1079 - 500) * .1 })
+
         expect($("#campaignContributionAmount").text()).toEqual("0.00000500")
         expect($("#campaignRequestAmount").text()).toEqual("0.00001079")
         expect($("#campaignProgressBar")[0].style.width).toEqual(
@@ -102,6 +110,11 @@ describe("progress bar", () => {
 
         //Run src file
         const campaignService = new EventEmitter()
+        
+        campaignService.subscribe = (cb) => {
+            campaignService.on("update", cb)
+        }
+
         const donationService = new EventEmitter()
 
         new ProgressBar({

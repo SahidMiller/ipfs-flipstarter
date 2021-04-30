@@ -9,7 +9,7 @@ module.exports = (app) => {
     app.sse = {
         //Handle requests from server to push to clients
         event: (campaignId, eventName, eventData) => {
-            
+
             if (hubs[campaignId]) {
                 hubs[campaignId].event(eventName, eventData)
             }
@@ -18,7 +18,7 @@ module.exports = (app) => {
         getHub: (campaignId) => {
             
             const hub = hubs[campaignId] || new Hub()
-            
+
             //Update app hubs if first hub
             if (!hubs[campaignId]) {
                 hubs[campaignId] = hub

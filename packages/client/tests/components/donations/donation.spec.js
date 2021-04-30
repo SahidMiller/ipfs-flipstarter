@@ -31,18 +31,18 @@ describe("donations input", () => {
     }
 
     test("shows pending status and hide donation, then reveal and hide status, then hide and reveal expiration status", async () => {
-        document.querySelector('html').innerHTML = readFileSync('./tests/assets/donation-fixture.html', 'utf8')
+        document.querySelector('html').innerHTML = readFileSync('./packages/client/tests/assets/donation-fixture.html', 'utf8')
 
         const campaignService = new EventEmitter()
-        
-        campaignService.subscribe = jest.fn().mockImplementation((eventName, cb) => {
-            campaignService.on(eventName, cb)
-        })
-
         campaignService.campaign = {
             ...testHttpCampaign,
             "starts": moment().add(1, 'seconds').unix(),
             "expires": moment().add(3, 'seconds').unix()
+        }
+
+        campaignService.subscribe = (cb) => {
+            campaignService.on("update", cb)
+            cb(campaignService.campaign)
         }
 
         const donationService = new EventEmitter()
@@ -99,13 +99,14 @@ describe("donations input", () => {
     })
 
     test("reveals donate section", async () => {
-        document.querySelector('html').innerHTML = readFileSync('./tests/assets/donation-fixture.html', 'utf8')
+        document.querySelector('html').innerHTML = readFileSync('./packages/client/tests/assets/donation-fixture.html', 'utf8')
 
         const campaignService = new EventEmitter()
 
-        campaignService.subscribe = jest.fn().mockImplementation((eventName, cb) => {
-            campaignService.on(eventName, cb)
-        })
+        campaignService.subscribe = (cb) => {
+            campaignService.on("update", cb)
+            cb(campaignService.campaign)
+        }
 
         campaignService.campaign = {
             ...testHttpCampaign,

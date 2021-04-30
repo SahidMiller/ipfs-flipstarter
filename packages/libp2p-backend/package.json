@@ -6,14 +6,10 @@
   "scripts": {
     "start": "npx serve ./ -l 55556",
     "build": "npx webpack",
-    "clean": "rm -rf ./dist",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "clean": "rm -rf ./dist"
   },
   "author": "",
   "license": "ISC",
-  "ipfs": {
-    "root": "./dist"
-  },
   "dependencies": {
     "bootstrap": "^4.6.0",
     "electrum-cash": "^2.0.7",

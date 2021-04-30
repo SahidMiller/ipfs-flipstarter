@@ -36,7 +36,13 @@ export default class ProgressBar {
             if (campaign && campaign.requestedSatoshis) {
                 
                 const sats = donation.satoshis || 0
-                self.updateCurrentContributionBar(campaign, sats / campaign.requestedSatoshis)
+
+                const requestedSatoshis = (campaign.requestedSatoshis || 0) + (campaign.minerFee || 0)
+                const committedSatoshis = (campaign.committedSatoshis || 0) - (campaign.totalCommittedMinerFees || 0)
+                
+                const campaignTotalAmountLeft = requestedSatoshis - committedSatoshis
+
+                self.updateCurrentContributionBar(campaign, 100 * (sats / campaignTotalAmountLeft))
             }
         })
     }
