@@ -7,13 +7,9 @@
     "last 2 version",
     "> 1%"
   ],
-  "ipfs": {
-    "root": "./dist"
-  },
   "scripts": {
     "start": "npx serve ./dist -l 5000",
     "build": "npx webpack",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "npm run build"
   },
   "publishConfig": {

@@ -52,7 +52,7 @@ class javascriptUtilities {
   }
 }
 
-const calculateMinerFee = function (RECIPIENT_COUNT, CONTRIBUTION_COUNT, TARGET_FEE_RATE = 1) {
+const calculateMinerFee = function (RECIPIENT_COUNT = 0, CONTRIBUTION_COUNT = 0, TARGET_FEE_RATE = 1) {
   // Define byte weights for different transaction parts.
   const TRANSACTION_METADATA_BYTES = 10;
   const AVERAGE_BYTE_PER_RECIPIENT = 69;
@@ -210,7 +210,7 @@ const submitContribution = async function (req, res) {
         }
 
         //Check that all recipients have commitments to the first campaign that are not revoked, God willing.
-        const isContributionValid = recipients.every(recipient => {
+        const isContributionValid = recipients.length && recipients.every(recipient => {
           const address = recipient.user_address
           const commitmentsByAddress = req.app.queries.getCommitmentsByAddress.all({ address })
           return commitmentsByAddress.find(filterCommitments)
@@ -303,7 +303,7 @@ const submitContribution = async function (req, res) {
               "blockchain.scripthash.listunspent",
               javascriptUtilities.reverseBuf(inputLockScriptHash).toString("hex")
             );
-    
+              
             // Locate the UTXO in the list of unspent transaction outputs.
             const inputUTXO = inputUTXOs.find(
               (utxo) => utxo.tx_hash === currentInput.previous_output_transaction_hash && utxo.tx_pos === currentInput.previous_output_index
@@ -585,6 +585,7 @@ const submitContribution = async function (req, res) {
       // Send an OK signal back to the client.
       res.status(200).json({ status: "ok" });
     } catch (error) {
+      console.log(error.stack)
       // Send an ERROR signal back to the client.
       res.status(500).json({ error: error });
 

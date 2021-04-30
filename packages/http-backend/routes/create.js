@@ -1,7 +1,6 @@
 // Enable support for Express apps.
 const express = require("express");
 const router = express.Router();
-const app = require("../server.js");
 
 // Wrap the campaign request in an async function.
 const create = async function (req, res) {
@@ -26,26 +25,26 @@ const initCapampaign = async function (req, res) {
   try {
 
 
-    const freshInstall = app.freshInstall
+    const freshInstall = req.app.freshInstall
 
     // Check that the creator of campaign has made a donation to one of the valid auth campaigns 
     // (may want to preauthorize them by adding the recipient to a list but then need controls of how many can be made and to make sure not to reject contributions to them)
-    if (!freshInstall && app.config.auth.type !== "no-auth") {
+    if (!freshInstall && req.app.config.auth.type !== "no-auth") {
 
       const recipientAddresses = req.body && req.body.recipients && req.body.recipients.map(r => r.address)
 
       let filterCommitments
       
-      if (app.config.auth.type === "pending-contributions") {
+      if (req.app.config.auth.type === "pending-contributions") {
         filterCommitments = (c) => req.app.config.auth.validAuthCampaigns.indexOf(c.campaign_id) !== -1 && (!c.revocation_id || (c.fullfillment_timestamp && c.revocation_timestamp > c.fullfillment_timestamp))
       } 
       
-      if (app.config.auth.type === "confirmed-contributions") {
+      if (req.app.config.auth.type === "confirmed-contributions") {
         filterCommitments = (c) => req.app.config.auth.validAuthCampaigns.indexOf(c.campaign_id) !== -1 && c.fullfillment_timestamp && c.revocation_timestamp > c.fullfillment_timestamp
       }
 
       const recipientHasCommitments = recipientAddresses.find(address => {
-        const commitmentsByAddress = app.queries.getCommitmentsByAddress.all({ address })
+        const commitmentsByAddress = req.app.queries.getCommitmentsByAddress.all({ address })
         return commitmentsByAddress.find(filterCommitments)
       });
 
@@ -57,6 +56,7 @@ const initCapampaign = async function (req, res) {
     req.app.debug.server("Init campaign from " + req.ip);
     
     const campaignData = req.body
+
     const hasData = !!campaignData && !isNaN(Number(campaignData.starts)) && !isNaN(Number(campaignData.expires))
     const hasRecipients = hasData && campaignData.recipients && campaignData.recipients.length && campaignData.recipients.every(r => {
       //TODO God willing: validate addresses and satoshis (more than dust)
@@ -81,7 +81,7 @@ const initCapampaign = async function (req, res) {
     const { abstractZH = "", proposalZH = "" } = getDescriptionLanguage("zh")
     const { abstractJA = "", proposalJA = "" } = getDescriptionLanguage("ja")
 
-    const createCampaignResult = app.queries.addCampaign.run({
+    const createCampaignResult = req.app.queries.addCampaign.run({
       title: campaignData.title,
       starts: Number(campaignData.starts),
       expires: Number(campaignData.expires),
@@ -96,7 +96,7 @@ const initCapampaign = async function (req, res) {
     });
 
     campaignData.recipients.forEach((recipient, i) => {
-      const addUserResult = app.queries.addUser.run({
+      const addUserResult = req.app.queries.addUser.run({
         user_url: recipient.url,
         user_image: recipient.image,
         user_alias: recipient.name,
@@ -104,7 +104,7 @@ const initCapampaign = async function (req, res) {
         data_signature: null,
       });
 
-      app.queries.addRecipientToCampaign.run({
+      req.app.queries.addRecipientToCampaign.run({
         user_id: addUserResult.lastInsertRowid,
         campaign_id: createCampaignResult.lastInsertRowid,
         recipient_satoshis: parseInt(recipient.satoshis)
@@ -113,10 +113,10 @@ const initCapampaign = async function (req, res) {
 
     // IMPORTANT: do not let the user access this page again
     // and redirect to home if they try
-    app.freshInstall = false;
+    req.app.freshInstall = false;
 
     //Return our server address for use in users client side flipstarter application
-    let address = (app.config.server.url || req.get('host')).replace(/\/$/, "")
+    let address = (req.app.config.server.url || req.get('host')).replace(/\/$/, "")
 
     if (!address.match(/^(http:\/\/|https:\/\/|\/\/)/)) {
       address = "//" + address

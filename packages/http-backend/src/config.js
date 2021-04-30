@@ -1,4 +1,4 @@
-const { cid: FLIPSTARTER_CREATE_CID, dag: FLIPSTARTER_CREATE_DAG } = require("@ipfs-flipstarter/create")
+//const { cid: FLIPSTARTER_CREATE_CID, dag: FLIPSTARTER_CREATE_DAG } = require("@ipfs-flipstarter/create")
 
 module.exports = async function initializeConfig(app) {
   const defaultGatewayUrl = process.env.DEFAULT_GATEWAY_URL || "https://ipfs.io"
@@ -17,7 +17,7 @@ module.exports = async function initializeConfig(app) {
 
       redirectHomeUrl: process.env.FLIPSTARTER_API_REDIRECT_HOME_URL,
       redirectCreateUrlBase: process.env.FLIPSTARTER_API_REDIRECT_CREATE_URL ||
-        defaultGatewayUrl + "/ipfs/" + FLIPSTARTER_CREATE_CID,
+        defaultGatewayUrl + "/ipfs/" //+ FLIPSTARTER_CREATE_CID,
     },
     bch: {
       network: process.env.NODE_ENV === "development" ? "testnet" : "mainnet",

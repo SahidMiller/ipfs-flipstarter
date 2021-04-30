@@ -45,7 +45,7 @@ class Campaign {
 
 export default class CampaignService extends EventEmitter {
     
-    constructor({ targetFeeRate = 1 }) {
+    constructor({ targetFeeRate = 1 } = {}) {
         super()
         this.targetFeeRate = targetFeeRate
         this.campaign = undefined
@@ -69,6 +69,7 @@ export default class CampaignService extends EventEmitter {
         //Notify when updated
         const self = this
         this.server.on('update', (campaign) => {
+            this.campaign = campaign
             self.emit('update', campaign)
         })
 

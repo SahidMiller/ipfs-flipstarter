@@ -148,6 +148,217 @@ hr
 	background-color: lightgrey;
 }
 
+#campaign {
+	margin-bottom: 0.75rem;
+}
+
+#amountsContainer {
+	float: right;
+}
+
+#timerContainer, #timerContainer > span, #amountsContainer > span {
+	float: left;
+}
+
+#donateStatus, #donateReward {
+	text-align: center;
+}
+
+#donateForm > div {
+	padding: 0;
+}
+
+#donateForm .money-icon {
+	display: inline-block;
+	width: 3rem;
+	height: 3rem;
+	text-align: center;
+	opacity: 0.5;
+	font-size: 2.25rem;
+	line-height: 3.25rem;
+}
+
+#donationSliderContainer {
+	padding: 0; 
+	text-align: center;
+}
+
+#donationSlider { 
+	height: 3rem;
+	padding: 0;
+	width: calc(100% - 2rem);
+	margin: 0rem;
+}
+
+#donationButtonContainer {
+	padding: 0 0.75rem; 
+	margin: 0.75rem 0rem;
+}
+
+#donateButton {
+	width: 100%; 
+	padding: 0; 
+	margin: 0rem;
+}
+
+#providerSection > div {
+	background-color: white;
+	border-radius: 0.25rem;
+	border: 1px solid rgba(0, 0, 0, 0.31);
+	padding-bottom: 1.5rem;
+	padding-top: 0.75rem;
+	width: 100%;
+}
+
+#providerSection > div > div {
+	margin-top: 0.75rem;
+}
+
+#contributionDetailsContainer {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	height: 10.5rem;
+	padding: 1rem;
+	margin: 0rem;
+	margin-top: 0.5rem;
+	border: 1px solid rgb(169, 169, 169);
+	box-shadow: inset 0rem 0.1rem 0.25rem
+	rgba(0, 0, 0, 0.13);
+}
+
+#contributionNameContainer .icon {
+	opacity: 0.5; 
+	font-size: 2.25rem; 
+	line-height: 2.25rem;
+}
+
+#contributionCommentContainer .icon {
+	opacity: 0.5;
+	font-size: 2rem;
+	line-height: 2.5rem;
+}
+
+#providerSection .provider-container {
+	padding: 0 0.75rem; 
+	margin: 0.75rem 0rem;
+}
+
+#providerSection .provider-container button {
+	width: 100%; 
+	padding: 0; 
+	margin: 0rem; 
+}
+
+#electrumSection > div {
+	background-color: white;
+	border-radius: 0.25rem;
+	border: 1px solid rgba(0, 0, 0, 0.31);
+	padding-bottom: 1.5rem;
+	padding-top: 0.75rem;
+}
+
+#electrumSection .step-title {
+	display: inline-block; 
+	width: 100%; 
+	text-align: center;
+}
+
+#template { 
+	height: 7rem; 
+	font-family: monospace; 
+	font-size: small; 
+	margin: 0; 
+	margin-top: 0.5rem; 
+	padding: 1rem;
+	background-color: white;
+}
+
+#instructions {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	font-size: small;
+	height: 7rem;
+	padding: 1rem;
+	margin-bottom: 7px;
+	margin-top: 0.5rem;
+	border: 1px solid rgb(169, 169, 169);
+}
+
+#instructionLinks {
+	display: flex;
+	align-items: center;
+	justify-content: space-evenly;
+}
+
+#downloadButton, #linkInstructionsButton {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	background-color: transparent;
+	color: black;
+	box-shadow: none;
+}
+
+#downloadButton span, #linkInstructionsButton span {
+	margin-left: 0.25rem;
+}
+
+#commitment {
+	height: 7rem;
+	font-family: monospace;
+	font-size: small;
+	margin: 0;
+	margin-top: 0.5rem;
+	padding: 1rem;
+	background-color: white;
+}
+
+#commitTransaction {
+	width: 100%;
+}
+
+#copyTemplateButton {
+	width: 100%;
+}
+
+#sidebar section h3 {
+	float: left;
+}
+
+#sidebar section h3 span {
+	float: left;
+}
+
+#recipientList {
+	margin-bottom: 2rem;
+}
+
+#info-links {
+	display: flex; 
+	justify-content: center; 
+	text-align: left;
+}
+
+#languageSelector #languageList {
+	float: right; 
+	text-align: right; 
+	margin-right: 0.5rem;
+}
+
+#languageSelector #languageList li a {
+	text-align: center;
+}
+
+.emptyContributionMessage {
+	display: block;
+	text-align: center;
+	color: rgba(0, 0, 0, 0.5);
+	padding: 2rem;
+}
+
 #campaign h1,
 #campaign h2,
 #campaign h3

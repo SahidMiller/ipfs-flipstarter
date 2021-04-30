@@ -9,15 +9,32 @@
   "directories": {
     "test": "tests"
   },
+  "jest": {
+    "transform": {
+      "^.+\\.js?$": "babel-jest"
+    },
+    "automock": false,
+    "rootDir": ".",
+    "noStackTrace": false,
+    "collectCoverage": false,
+    "moduleFileExtensions": [
+      "js"
+    ],
+    "unmockedModulePathPatterns": [
+      "<rootDir>/node_modules/moment"
+    ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/node_modules/"
+    ]
+  },
   "workspaces": [
     "./packages/*"
   ],
   "scripts": {
-    "build": "npx lerna-script deploy-on-ipfs",
-    "dev": "npx lerna-script deploy-on-ipfs-watcher",
-    "clean": "npx lerna-script deploy-on-ipfs-cleaner",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lsrun": "npx lerna-script"
+    "build": "lerna run build",
+    "dev": "lerna run dev",
+    "clean": "lerna run clean",
+    "test": "npx jest"
   },
   "devDependencies": {
     "@babel/cli": "^7.11.6",
@@ -47,7 +64,6 @@
     "jest": "^26.6.3",
     "jest-environment-jsdom-sixteen": "^1.0.3",
     "lerna": "^4.0.0",
-    "lerna-script": "^1.3.3",
     "node-loader": "^1.0.2",
     "process": "^0.11.10",
     "raw-loader": "^4.0.2",
@@ -56,6 +72,7 @@
     "stream-http": "^3.1.1",
     "style-ext-html-webpack-plugin": "https://github.com/rjanjic/style-ext-html-webpack-plugin.git",
     "style-loader": "^2.0.0",
+    "supertest": "^6.1.3",
     "terminate": "^2.1.2",
     "terser-webpack-plugin": "^4.2.3",
     "through2": "^4.0.2",
