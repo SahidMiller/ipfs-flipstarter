@@ -46,7 +46,6 @@
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "babel-polyfill": "^6.26.0",
     "buffer": "^6.0.3",
-    "chokidar": "^3.5.1",
     "cids": "^1.1.6",
     "copy-webpack-plugin": "^8.1.0",
     "cross-env": "^7.0.3",
