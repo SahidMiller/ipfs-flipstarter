@@ -45,6 +45,6 @@
     "regenerator-runtime": "^0.13.7",
     "slp-mdm": "0.0.7",
     "slpjs": "^0.27.11",
-    "uuid": "^8.3.1"
+    "uuid": "^8.3.2"
   }
 }
