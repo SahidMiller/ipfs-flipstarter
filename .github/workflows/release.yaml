@@ -32,9 +32,9 @@ jobs:
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
-      - name: upload cash-wallet to IPFS
+      - name: upload dweb-cash wallet to IPFS
         uses: aquiladev/ipfs-action@master
-        id: cash-wallet-ipfs
+        id: wallet-ipfs
         with:
           path: ./packages/cash-wallet/public
           host: ipfs.komputing.org
@@ -42,4 +42,26 @@ jobs:
           protocol: https
           timeout: 180000
           verbose: true
-      - run: echo "${{ steps.cash-wallet-ipfs.outputs.hash }}"
+      - name: upload flipstarter client site to IPFS
+        uses: aquiladev/ipfs-action@master
+        id: client-ipfs
+        with:
+          path: ./packages/client/public
+          host: ipfs.komputing.org
+          port: 443
+          protocol: https
+          timeout: 180000
+          verbose: true
+      - name: upload flipstarter create site to IPFS
+        uses: aquiladev/ipfs-action@master
+        id: create-ipfs
+        with:
+          path: ./packages/create/public
+          host: ipfs.komputing.org
+          port: 443
+          protocol: https
+          timeout: 180000
+          verbose: true
+      - run: echo "${{ steps.wallet-ipfs.outputs.hash }}"
+      - run: echo "${{ steps.client-ipfs.outputs.hash }}"
+      - run: echo "${{ steps.create-ipfs.outputs.hash }}"
