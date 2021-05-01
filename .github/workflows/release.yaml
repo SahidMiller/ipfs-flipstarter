@@ -14,13 +14,33 @@ jobs:
         with:
           node-version: '14'
           check-latest: true
-      - name: Build repository code
-        run: |
-          yarn install
-          npm run build
-          npm run test
+      - name: Install packages
+        run: yarn install
+      - name: Build project
+        run: npm run build
+      - name: Run tests
+        run: npm run test
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
       - run: echo "🖥️ The workflow is now ready to test your code on the runner."
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
+      - name: upload cash-wallet to IPFS
+        id: bucket
+        uses: textileio/github-action-buckets@master
+        with:
+          key: ${{ secrets.TEXTILE_ACCOUNT_KEY }}
+          secret: ${{ secrets.TEXTILE_ACCOUNT_SECRET }}
+          bucket: '@ipfs-flipstarters'
+          thread: 'bafk4kgh7et6iue5ps6ehawkfbhc3gzm66snbsp677pmxgshotpdlisi'
+          path: './packages/cash-wallet'
+          pattern: './public/*'
+      # Use the output from the `hello` step
+      - run: echo "bucket key - ${{ steps.bucket.outputs.key }}"
+      - run: echo "ipfs - ${{ steps.bucket.outputs.ipfs }}"
+      - run: echo "ipfs link - ${{ steps.bucket.outputs.ipfsUrl }}"
+      - run: echo "ipns - ${{ steps.bucket.outputs.ipns }}"
+      - run: echo "ipns link - ${{ steps.bucket.outputs.ipnsUrl }}"
+      - run: echo "hub - ${{ steps.bucket.outputs.hub }}"
+      - run: echo "www - ${{ steps.bucket.outputs.www }}"
+      - run: echo "🍏 This job's status is ${{ job.status }}."
