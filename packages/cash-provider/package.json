@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "start": "npx serve ./dist -l 5000",
-    "build": "npx webpack",
+    "build": "npx cross-env NODE_ENV=production npx webpack",
     "prepare": "npm run build"
   },
   "publishConfig": {

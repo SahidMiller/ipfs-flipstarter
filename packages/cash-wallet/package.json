@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "start": "npx serve -l 5050 -s ./public",
-    "build": "npx webpack",
+    "build": "npx cross-env NODE_ENV=production npx webpack",
     "dev": "npx cross-env SIGNUP_HD_PATH=\"m/44'/145'/0'/0/0\" npm run build",
     "clean": "rm -rf ./dist && rm -rf ./public/js && rm -rf ./public/images"
   },
