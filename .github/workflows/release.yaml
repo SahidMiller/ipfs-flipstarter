@@ -26,19 +26,13 @@ jobs:
         run: |
           ls ${{ github.workspace }}
       - name: upload cash-wallet to IPFS
-        id: bucket
-        uses: textileio/github-action-buckets@master
+        uses: aquiladev/ipfs-action@v1
+        id: cash-wallet-ipfs
         with:
-          key: ${{ secrets.TEXTILE_ACCOUNT_KEY }}
-          secret: ${{ secrets.TEXTILE_ACCOUNT_SECRET }}
-          bucket: '@ipfs-flipstarters'
-          thread: 'bafk4kgh7et6iue5ps6ehawkfbhc3gzm66snbsp677pmxgshotpdlisi'
-      # Use the output from the `hello` step
-      - run: echo "bucket key - ${{ steps.bucket.outputs.key }}"
-      - run: echo "ipfs - ${{ steps.bucket.outputs.ipfs }}"
-      - run: echo "ipfs link - ${{ steps.bucket.outputs.ipfsUrl }}"
-      - run: echo "ipns - ${{ steps.bucket.outputs.ipns }}"
-      - run: echo "ipns link - ${{ steps.bucket.outputs.ipnsUrl }}"
-      - run: echo "hub - ${{ steps.bucket.outputs.hub }}"
-      - run: echo "www - ${{ steps.bucket.outputs.www }}"
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+          path: ./packages/cash-wallet/public
+          host: ipfs.komputing.org
+          port: 443
+          protocol: https
+          timeout: 180000
+          verbose: true
+      - run: echo "${{ steps.cash-wallet-ipfs.outputs.hash }}"
