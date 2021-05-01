@@ -36,7 +36,6 @@
     ]
   },
   "scripts": {
-    "install": "yarn install && lerna bootstrap",
     "build": "lerna run build",
     "dev": "lerna run dev",
     "clean": "lerna run clean",
