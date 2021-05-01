@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "start": "npx serve ./dist -l 55555",
-    "build": "npx webpack",
+    "build": "npx cross-env NODE_ENV=production npx webpack",
     "clean": "rm -rf ./dist && rm -rf ./public"
   },
   "author": "",
