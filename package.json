@@ -98,6 +98,7 @@
     "@ipfs-flipstarter/http-backend": "link:packages\\http-backend",
     "@ipfs-flipstarter/libp2p-backend": "link:packages\\libp2p-backend",
     "@ipfs-flipstarter/utils": "link:packages\\utils",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "core-js": "^3.6.5"
   }
 }
