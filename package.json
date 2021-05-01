@@ -28,8 +28,12 @@
     ]
   },
   "workspaces": {
-    "packages": ["./packages/*"],
-    "nohoist": ["uuid"]
+    "packages": [
+      "./packages/*"
+    ],
+    "nohoist": [
+      "uuid"
+    ]
   },
   "scripts": {
     "install": "yarn install && lerna bootstrap",
@@ -94,6 +98,7 @@
     "@ipfs-flipstarter/create": "link:packages\\create",
     "@ipfs-flipstarter/http-backend": "link:packages\\http-backend",
     "@ipfs-flipstarter/libp2p-backend": "link:packages\\libp2p-backend",
-    "@ipfs-flipstarter/utils": "link:packages\\utils"
+    "@ipfs-flipstarter/utils": "link:packages\\utils",
+    "uuid": "^8.3.2"
   }
 }
