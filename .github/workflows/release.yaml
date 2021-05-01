@@ -16,7 +16,7 @@ jobs:
           check-latest: true
       - name: Build repository code
         run: |
-          npm run install
+          yarn install
           npm run build
           npm run test
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
