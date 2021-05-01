@@ -27,9 +27,10 @@
       "<rootDir>/node_modules/"
     ]
   },
-  "workspaces": [
-    "./packages/*"
-  ],
+  "workspaces": {
+    "packages": ["./packages/*"],
+    "nohoist": ["uuid"]
+  },
   "scripts": {
     "install": "yarn install && lerna bootstrap",
     "build": "lerna run build",
