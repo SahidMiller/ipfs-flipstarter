@@ -33,7 +33,7 @@ jobs:
         run: |
           ls ${{ github.workspace }}
       - name: upload cash-wallet to IPFS
-        uses: aquiladev/ipfs-action@v2
+        uses: aquiladev/ipfs-action@master
         id: cash-wallet-ipfs
         with:
           path: ./packages/cash-wallet/public
