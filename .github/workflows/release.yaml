@@ -33,8 +33,6 @@ jobs:
           secret: ${{ secrets.TEXTILE_ACCOUNT_SECRET }}
           bucket: '@ipfs-flipstarters'
           thread: 'bafk4kgh7et6iue5ps6ehawkfbhc3gzm66snbsp677pmxgshotpdlisi'
-          path: './packages/cash-wallet'
-          pattern: './public/*'
       # Use the output from the `hello` step
       - run: echo "bucket key - ${{ steps.bucket.outputs.key }}"
       - run: echo "ipfs - ${{ steps.bucket.outputs.ipfs }}"
