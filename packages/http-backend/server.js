@@ -58,20 +58,20 @@ const setup = async function () {
   app.use(json());
   
   // Read the package information file.
-  app.software = require("../package.json");
+  app.software = require("./package.json");
 
   // Load the configuration file.
-  await require("./config.js")(app);
+  await require("./src/config.js")(app);
 
   // Load application modules.
-  await require("./logging.js")(app);
+  await require("./src/logging.js")(app);
 
   // Log config immediately
   app.debug.object(app.config)
 
-  await require("./storage.js")(app);
-  await require("./network.js")(app);
-  await require("./events.js")(app);
+  await require("./src/storage.js")(app);
+  await require("./src/network.js")(app);
+  await require("./src/events.js")(app);
 
   module.exports = app;
 
@@ -89,16 +89,16 @@ const setup = async function () {
   app.set("json spaces", 2);
 
   // Create routes from separate files.
-  app.use("/submit", require("../routes/submit.js"));
-  app.use("/", require("../routes/home.js"));
+  app.use("/submit", require("./routes/submit.js"));
+  app.use("/", require("./routes/home.js"));
   
   const clientRoot = path.dirname(require.resolve("@ipfs-flipstarter/client/package.json"))
   if (!app.config.server.redirectHomeUrl) {
-    router.use("/static", express.static(path.join(clientRoot, "/public/static")));
+    app.use("/static", express.static(path.join(clientRoot, "/public/static")));
   }
 
-  app.use("/create", require("../routes/create.js"));
-  app.use("/events", require("../routes/events.js"));
+  app.use("/create", require("./routes/create.js"));
+  app.use("/events", require("./routes/events.js"));
 
   // Initialize an empty set of scripthashes that we are subscribed to.
   app.subscribedScriphashes = {};
@@ -314,5 +314,14 @@ const setup = async function () {
   //
   // app.use('/status', require('./routes/status.js'));
 
-  return app
+  // Listen to incoming connections on port X.
+  app.listen(app.config.server.port, "0.0.0.0");
+
+  // Notify user that the service is ready for incoming connections.
+  app.debug.status(
+    "Listening for incoming connections on port " + app.config.server.port
+  );
 };
+
+// Initialize the server.
+setup();
