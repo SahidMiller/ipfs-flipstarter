@@ -63,7 +63,7 @@ jobs:
           echo "::set-output name=key::$(echo ${{ secrets.BADGES_IPNS_KEY }} | xxd -r -p | ipfs key import publish_badges -)"
 
           #Upload badges to IPFS
-          echo "::set-output name=hash::$(ipfs add -Q ./badges)"
+          echo "::set-output name=hash::$(ipfs add -rQ ./badges)"
 
           #Check IPFS Status (on gateway)
           curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipfs/${{ steps.badges.outputs.hash }}
