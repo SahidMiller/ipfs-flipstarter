@@ -28,6 +28,6 @@ jobs:
       - name: Run tests
         id: tests
         run: |
-          npm run test -- --coverage
+          npm run test -- --coverage --coverageReporters="json-summary"
           echo "::set-output name=coverage::$(grep '"pct":(\d*\.?\d+)' ./coverage/coverage-summary.json  -m 1 -Po | head -1 | grep '\d*\.?\d+' -Po)"
       - run: echo "${{ steps.tests.outputs.coverage }}"
