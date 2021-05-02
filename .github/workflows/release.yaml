@@ -36,23 +36,24 @@ jobs:
         uses: ibnesayeed/setup-ipfs@master
         with:
           run_daemon: true
+          ipfs_version: 0.8
       - name: upload dweb-cash wallet to IPFS
         id: wallet-ipfs
         run: |
           echo "::set-output name=hash::$(ipfs add -rQ ./packages/cash-wallet/public)"
-          echo "::set-output name=key::$(echo ${ secrets.DWEB_WALLET_IPNS_KEY }} | xxd -r -p | ipfs key import wallet_publish -)"
+          echo "::set-output name=key::$(echo ${{ secrets.DWEB_WALLET_IPNS_KEY }} | xxd -r -p | ipfs key import wallet_publish -)"
       - name: upload flipstarter client site to IPFS
         id: client-ipfs
         run: |
           echo "::set-output name=hash::$(ipfs add -rQ ./packages/client/public)"
-          echo "::set-output name=key::$(echo ${ secrets.FLIPSTARTER_CLIENT_IPNS_KEY }} | xxd -r -p | ipfs key import client_publish -)"
+          echo "::set-output name=key::$(echo ${{ secrets.FLIPSTARTER_CLIENT_IPNS_KEY }} | xxd -r -p | ipfs key import client_publish -)"
       - name: upload flipstarter create site to IPFS
         id: create-ipfs
         run: |
           echo "::set-output name=hash::$(ipfs add -rQ ./packages/create/public)"
-          echo "::set-output name=key::$(echo ${ secrets.FLIPSTARTER_CREATE_IPNS_KEY }} | xxd -r -p | ipfs key import create_publish -)"
+          echo "::set-output name=key::$(echo ${{ secrets.FLIPSTARTER_CREATE_IPNS_KEY }} | xxd -r -p | ipfs key import create_publish -)"
       - run: |
-          curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipfs/${{ steps.wallet-ipfs.outputs.hash }}
+          curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipfs/{{{ steps.wallet-ipfs.outputs.hash }}
           curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipfs/${{ steps.client-ipfs.outputs.hash }}
           curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipfs/${{ steps.create-ipfs.outputs.hash }}
       - run: |
