@@ -57,6 +57,7 @@ jobs:
           ipfs_version: 0.8
       - name: Upload badges to IPFS
         id: badges
+        if: ${{ always() }}
         run: |
           #Import IPNS Keys
           echo "::set-output name=key::$(echo ${{ secrets.BADGES_IPNS_KEY }} | xxd -r -p | ipfs key import publish_badges -)"
