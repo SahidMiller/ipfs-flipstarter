@@ -57,9 +57,9 @@ jobs:
           curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipfs/${{ steps.client-ipfs.outputs.hash }}
           curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipfs/${{ steps.create-ipfs.outputs.hash }}
       - run: |
-          ipfs name publish --key=wallet_publish ${{ steps.wallet-ipfs.output.hash }}
-          ipfs name publish --key=client_publish ${{ steps.client-ipfs.output.hash }}
-          ipfs name publish --key=create_publish ${{ steps.create-ipfs.output.hash }}
+          ipfs name publish --key=wallet_publish ${{ steps.wallet-ipfs.outputs.hash }}
+          ipfs name publish --key=client_publish ${{ steps.client-ipfs.outputs.hash }}
+          ipfs name publish --key=create_publish ${{ steps.create-ipfs.outputs.hash }}
       - run: |
           curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipns/${{ steps.wallet-ipfs.outputs.key }}
           curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipns/${{ steps.client-ipfs.outputs.key }}
