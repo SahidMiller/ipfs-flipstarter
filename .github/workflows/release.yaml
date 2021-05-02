@@ -53,7 +53,7 @@ jobs:
           echo "::set-output name=hash::$(ipfs add -rQ ./packages/create/public)"
           echo "::set-output name=key::$(echo ${{ secrets.FLIPSTARTER_CREATE_IPNS_KEY }} | xxd -r -p | ipfs key import create_publish -)"
       - run: |
-          curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipfs/{{{ steps.wallet-ipfs.outputs.hash }}
+          curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipfs/${{ steps.wallet-ipfs.outputs.hash }}
           curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipfs/${{ steps.client-ipfs.outputs.hash }}
           curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipfs/${{ steps.create-ipfs.outputs.hash }}
       - run: |
