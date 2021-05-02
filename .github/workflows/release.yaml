@@ -26,41 +26,8 @@ jobs:
       - name: Build project
         run: npm run build
       - name: Run tests
-        run: npm run test
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
-      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
-      - name: List files in the repository
+        id: tests
         run: |
-          ls ${{ github.workspace }}
-      - name: Start IPFS
-        uses: ibnesayeed/setup-ipfs@master
-        with:
-          run_daemon: true
-          ipfs_version: 0.8
-      - name: upload dweb-cash wallet to IPFS
-        id: wallet-ipfs
-        run: |
-          echo "::set-output name=hash::$(ipfs add -rQ ./packages/cash-wallet/public)"
-          echo "::set-output name=key::$(echo ${{ secrets.DWEB_WALLET_IPNS_KEY }} | xxd -r -p | ipfs key import wallet_publish -)"
-      - name: upload flipstarter client site to IPFS
-        id: client-ipfs
-        run: |
-          echo "::set-output name=hash::$(ipfs add -rQ ./packages/client/public)"
-          echo "::set-output name=key::$(echo ${{ secrets.FLIPSTARTER_CLIENT_IPNS_KEY }} | xxd -r -p | ipfs key import client_publish -)"
-      - name: upload flipstarter create site to IPFS
-        id: create-ipfs
-        run: |
-          echo "::set-output name=hash::$(ipfs add -rQ ./packages/create/public)"
-          echo "::set-output name=key::$(echo ${{ secrets.FLIPSTARTER_CREATE_IPNS_KEY }} | xxd -r -p | ipfs key import create_publish -)"
-      - run: |
-          curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipfs/${{ steps.wallet-ipfs.outputs.hash }}
-          curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipfs/${{ steps.client-ipfs.outputs.hash }}
-          curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipfs/${{ steps.create-ipfs.outputs.hash }}
-      - run: |
-          ipfs name publish --key=wallet_publish ${{ steps.wallet-ipfs.outputs.hash }}
-          ipfs name publish --key=client_publish ${{ steps.client-ipfs.outputs.hash }}
-          ipfs name publish --key=create_publish ${{ steps.create-ipfs.outputs.hash }}
-      - run: |
-          curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipns/${{ steps.wallet-ipfs.outputs.key }}
-          curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipns/${{ steps.client-ipfs.outputs.key }}
-          curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipns/${{ steps.create-ipfs.outputs.key }}
+          npm run test -- --coverage
+          echo "::set-output name=coverage::$(grep '"pct":(\d*\.?\d+)' ./coverage/coverage-summary.json  -m 1 -Po | head -1 | grep '\d*\.?\d+' -Po)"
+      - run: echo "${{ steps.tests.outputs.coverage }}"
