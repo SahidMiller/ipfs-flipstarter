@@ -41,8 +41,8 @@ jobs:
           mkdir badges
           set -x
           
-          if ((${{ steps.tests.outputs.coverage }} <= 50)); then COLOR=red
-          elif ((${{ steps.tests.outputs.coverage }} > 80)); then COLOR=green
+          if ((  $(printf "%1.f" ${{ steps.tests.outputs.coverage }}) <= 50  )); then COLOR=red
+          elif ((  $(printf "%1.f" ${{ steps.tests.outputs.coverage }}) > 80  )); then COLOR=green
           else COLOR=orange
           fi
           
