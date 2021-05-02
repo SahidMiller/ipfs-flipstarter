@@ -30,4 +30,72 @@ jobs:
         run: |
           npm run test -- --coverage --coverageReporters="json-summary"
           echo "::set-output name=coverage::$(grep '"pct":(\d*\.?\d+)' ./coverage/coverage-summary.json  -m 1 -Po | head -1 | grep '\d*\.?\d+' -Po)"
-      - run: echo "${{ steps.tests.outputs.coverage }}"
+      - name: Download build failure badges
+        if: ${{ failure() }}
+        run: |
+          mkdir badges
+          curl "https://img.shields.io/badge/coverage-0%25-red" > ./badges/coverage.svg
+          curl "https://img.shields.io/badge/build-failing-red.svg" > ./badges/build.svg
+      - name: Download build success badges
+        run: |
+          mkdir badges
+          set -x
+          
+          if ((${{ steps.tests.outputs.coverage }} <= 50)); then COLOR=red
+          elif ((${{ steps.tests.outputs.coverage }} > 80)); then COLOR=green
+          else COLOR=orange
+          fi
+          
+          set +x
+          
+          curl "https://img.shields.io/badge/coverage-${{steps.tests.outputs.coverage}}%25-$COLOR" > ./badges/coverage.svg
+          curl "https://img.shields.io/badge/build-passing-brightgreen.svg" > ./badges/build.svg
+      - name: Start IPFS
+        uses: ibnesayeed/setup-ipfs@master
+        with:
+          run_daemon: true
+          ipfs_version: 0.8
+      - name: Upload badges to IPFS
+        id: badges
+        run: |
+          #Import IPNS Keys
+          echo "::set-output name=key::$(echo ${{ secrets.BADGES_IPNS_KEY }} | xxd -r -p | ipfs key import publish_badges -)"
+
+          #Upload badges to IPFS
+          echo "::set-output name=hash::$(ipfs add -Q ./badges)"
+
+          #Check IPFS Status (on gateway)
+          curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipfs/${{ steps.badges.outputs.hash }}
+
+          #Publish badges to IPNS
+          ipfs name publish --key=publish_badges ${{ steps.badges.outputs.hash }}
+
+          #Check IPNS Status (on gateway)
+          curl --write-out '%{http_code}' --silent --output /dev/null --fail https://ipfs.io/ipns/${{ steps.badges.outputs.key }}
+      - name: Upload packages to IPFS
+        id: ipfs
+        run: |
+          #Import IPNS Keys
+          echo "::set-output name=wallet-key::$(echo ${{ secrets.DWEB_WALLET_IPNS_KEY }} | xxd -r -p | ipfs key import publish_wallet -)"
+          echo "::set-output name=client-key::$(echo ${{ secrets.FLIPSTARTER_CLIENT_IPNS_KEY }} | xxd -r -p | ipfs key import publish_client -)"
+          echo "::set-output name=create-key::$(echo ${{ secrets.FLIPSTARTER_CREATE_IPNS_KEY }} | xxd -r -p | ipfs key import publish_create -)"
+
+          #Upload packages to IPFS
+          echo "::set-output name=wallet-hash::$(ipfs add -rQ ./packages/cash-wallet/public)"
+          echo "::set-output name=client-hash::$(ipfs add -rQ ./packages/client/public)"
+          echo "::set-output name=create-hash::$(ipfs add -rQ ./packages/create/public)"
+
+          #Check package IPFS Status (on gateway)
+          curl --write-out 'Wallet IPFS Status: %{http_code}\n' --silent --output /dev/null --fail https://ipfs.io/ipfs/${{ steps.ipfs.outputs.wallet-hash }} & \
+          curl --write-out 'Client IPFS Status: %{http_code}\n' --silent --output /dev/null --fail https://ipfs.io/ipfs/${{ steps.ipfs.outputs.client-hash }} & \
+          curl --write-out 'Create IPFS Status: %{http_code}\n' --silent --output /dev/null --fail https://ipfs.io/ipfs/${{ steps.ipfs.outputs.create-hash }}
+
+          #Publish packages to IPNS
+          ipfs name publish --key=publish_wallet ${{ steps.wallet-ipfs.outputs.publish_wallet }} & \
+          ipfs name publish --key=publish_client ${{ steps.client-ipfs.outputs.publish_client }} & \
+          ipfs name publish --key=publish_create ${{ steps.create-ipfs.outputs.publish_create }}
+
+          #Check package IPNS Status (on gateway)
+          curl --write-out 'Wallet IPNS Status: %{http_code}\n' --silent --output /dev/null --fail https://ipfs.io/ipns/${{ steps.ipfs.outputs.wallet-key }} &\
+          curl --write-out 'Client IPNS Status: %{http_code}\n' --silent --output /dev/null --fail https://ipfs.io/ipns/${{ steps.ipfs.outputs.client-key }} & \
+          curl --write-out 'Create IPNS Status: %{http_code}\n' --silent --output /dev/null --fail https://ipfs.io/ipns/${{ steps.ipfs.outputs.create-key }}
