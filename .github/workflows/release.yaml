@@ -57,7 +57,7 @@ jobs:
         id: create-ipfs
         with:
           path: ./packages/create/public
-          host: node1.preload.ipfs.io
+          host: ipfs.komputing.org
           port: 443
           protocol: https
           timeout: 180000
