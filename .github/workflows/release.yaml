@@ -98,9 +98,9 @@ jobs:
       - name: Upload packages to IPNS
         run: |
           #Publish packages to IPNS
-          ipfs name publish --key=publish_wallet ${{ steps.ipfs.outputs.publish_wallet }} & \
-          ipfs name publish --key=publish_client ${{ steps.ipfs.outputs.publish_client }} & \
-          ipfs name publish --key=publish_create ${{ steps.ipfs.outputs.publish_create }}
+          ipfs name publish --key=publish_wallet ${{ steps.ipfs.outputs.wallet-hash }} & \
+          ipfs name publish --key=publish_client ${{ steps.ipfs.outputs.client-hash }} & \
+          ipfs name publish --key=publish_create ${{ steps.ipfs.outputs.create-hash }}
       - name: Check packages IPNS on public gateway
         run: |
           #Check package IPNS Status (on gateway)

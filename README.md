@@ -1,5 +1,8 @@
 # ipfs-flipstarter
 
+![banner](https://gateway.ipfs.io/ipfs/QmPmRx1bQC1tku8q1PBwGa1P2e8bRSomGQE5tD3AboyHkp)
+
+
 [![](https://ipfs.io/ipns/k51qzi5uqu5dgdocf63983yb9eigz3nqsu892vph2dq9hsxm5bhj8c45o5ggdb/build.svg)](https://github.com/SahidMiller/ipfs-flipstarter/actions)
 [![](https://ipfs.io/ipns/k51qzi5uqu5dgdocf63983yb9eigz3nqsu892vph2dq9hsxm5bhj8c45o5ggdb/coverage.svg)](https://github.com/SahidMiller/ipfs-flipstarter/actions)
 
@@ -10,6 +13,10 @@
 |**`server`**| IPFS site to host a browser based server that can accept and validate donations in the browser using libp2p-flipstarter-server |
 |**`create`**| IPFS site to create flipstarter sites in the browser using IPFS. Includes an adapter to use third-party apis for handling contributions (like the included browser server) |
 |**`client`**| Flipstarter client-side app used and deployed by the create package |
+
+| Create page | Client page example |
+|-------|---------|
+| ![Screenshot of the Create page](https://gateway.ipfs.io/ipfs/QmRNKsFqX6YtKopfY7JGNTpovZyS7dKjaDhgaALXpfyB6Z) | ![Screenshot of the client screen](https://gateway.ipfs.io/ipfs/QmPGTpMzeu9UVx8ftRvukStdgu9DtA5iUGND4MvoWojkQt) |
 
 ## Concepts
 
