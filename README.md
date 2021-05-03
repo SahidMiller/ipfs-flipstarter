@@ -1,6 +1,6 @@
 # ipfs-flipstarter
 
-![banner](https://gateway.ipfs.io/ipfs/QmPmRx1bQC1tku8q1PBwGa1P2e8bRSomGQE5tD3AboyHkp)
+![banner](https://gateway.ipfs.io/ipfs/QmQCBJHFzz1BFwToNq2ps72F88q8XGVGdSzkVPw3u3NzGW)
 
 
 [![](https://ipfs.io/ipns/k51qzi5uqu5dgdocf63983yb9eigz3nqsu892vph2dq9hsxm5bhj8c45o5ggdb/build.svg)](https://github.com/SahidMiller/ipfs-flipstarter/actions)
